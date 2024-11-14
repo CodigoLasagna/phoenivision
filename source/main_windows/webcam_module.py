@@ -10,10 +10,10 @@ class MainCameraFrameNode:
         self.fps = 60
         self.on_update = False
 
-        with dpg.window(label="Opciones de la cámara"):
-            dpg.add_button(label="set 320x240", callback=self.make_240)
-            dpg.add_button(label="set 640x480", callback=self.make_480)
-            dpg.add_button(label="set 1280x70", callback=self.make_720)
+        #with dpg.window(label="Opciones de la cámara"):
+        #    dpg.add_button(label="set 320x240", callback=self.make_240)
+        #    dpg.add_button(label="set 640x480", callback=self.make_480)
+        #    dpg.add_button(label="set 1280x70", callback=self.make_720)
 
     def make_240(self):
         self.width = 320
@@ -61,19 +61,21 @@ class MainCameraFrameNode:
         if dpg.does_item_exist("image_cam"):
             dpg.configure_item(item="image_cam", texture_tag="texture_tag", width=self.width, height=self.height)
             dpg.configure_item(item="image_input", texture_tag="texture_tag", width=self.width, height=self.height)
-            #dpg.configure_item(item="webcam_node", width=self.width, height=self.height)
         else:
-            #with dpg.window(label="webcam_menu", tag="webcam_menu"):
-            #    dpg.add_image(texture_tag="texture_tag", tag="image_cam")
-            with dpg.node(label="Webcam node input", tag="mediapipe_node"):
-                with dpg.node_attribute(label="Webcam input", attribute_type=dpg.mvNode_Attr_Input):
-                    dpg.add_image(texture_tag="texture_tag", tag="image_input")
-
             with dpg.node(label="Webcam node output", tag="webcam_node"):
-                with dpg.node_attribute(label="Webcam output", attribute_type=dpg.mvNode_Attr_Output):
+                with dpg.node_attribute(label="Webcam output", attribute_type=dpg.mvNode_Attr_Output, tag="testing_alias_a"):
                     dpg.add_image(texture_tag="texture_tag", tag="image_cam")
-                #with dpg.node_attribute(label="Webcam node", tag="webcam_node", attribute_type=dpg.mvNode_Attr_Static):
-                #    dpg.add_image(texture_tag="texture_tag", tag="image_cam")
+                #with dpg.node_attribute(label="test", attribute_type=dpg.mvNode_Attr_Output):
+                #    dpg.add_input_float(label="test", width=200, tag="input_float_output", callback=self.update_input)
+
+            with dpg.node(label="Webcam node input", tag="mediapipe_node"):
+                with dpg.node_attribute(label="Webcam input", attribute_type=dpg.mvNode_Attr_Input, tag="testing_alias_b"):
+                    dpg.add_image(texture_tag="texture_tag", tag="image_input")
+                #with dpg.node_attribute(label="test", attribute_type=dpg.mvNode_Attr_Input, tag="testing_alias_b"):
+                #    dpg.add_input_float(label="test", width=200, tag="input_float_input")
+
+    def update_input(self, sender, app_data):
+        dpg.set_value("input_float_input", app_data)
 
     def camera_loop(self):
         while dpg.is_dearpygui_running():
