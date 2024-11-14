@@ -28,11 +28,11 @@ class MainApp:
         self.env_settings_modal = efm.ModalWindow(label="Configuración del entorno", fields=[""], buttons=[""], width=600, height=400)
 
 
-    def link_callback(sender, app_data):
+    def link_callback(self, sender, app_data):
         if (len(app_data) == 2):
             dpg.add_node_link(app_data[0], app_data[1], parent=sender)
 
-    def delink_callback(sender, app_data):
+    def delink_callback(self, sender, app_data):
         dpg.delete_item(app_data)
 
     def open_settings_modal(self):
