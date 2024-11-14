@@ -29,8 +29,9 @@ class MainApp:
         self.env_settings_modal = efm.ModalWindow(label="Configuración del entorno", fields=[""], buttons=[""], width=600, height=400)
 
         # Crear menú contextual como ventana flotante
-        with dpg.window(label="Menú Contextual", modal=True, show=False, tag="right_click_menu", pos=(0, 0), autosize=True):
-            dpg.add_menu_item(label="Entorno", callback=self.open_settings_modal)
+        with dpg.window(label="Nodos", modal=True, show=False, tag="right_click_menu", pos=(0, 0), autosize=True):
+            dpg.add_menu_item(label="Webcam output", callback=self.camera_node.gen_webcam_output_node)
+            dpg.add_menu_item(label="Webcam input", callback=self.camera_node.gen_webcam_input_node)
 
         # Crear un handler para detectar clic derecho
         with dpg.handler_registry():
@@ -39,14 +40,11 @@ class MainApp:
     def show_right_click_menu(self, sender, app_data):
         # Mostrar el menú solo en el nodo de edición con clic derecho
         if app_data == dpg.mvMouseButton_Right:
+            if (dpg.get_item_state("right_click_menu")['visible'] == True):
+                return
             mouse_pos = dpg.get_mouse_pos()
             dpg.set_item_pos("right_click_menu", mouse_pos)
             dpg.show_item("right_click_menu")
-            if not (dpg.does_item_exist("test_node")):
-                with dpg.node(label="Test node", tag="test_node", parent="main_node_editor"):
-                    with dpg.node_attribute(label="input", attribute_type=dpg.mvNode_Attr_Input, tag="test_test"):
-                        dpg.add_input_float(label="test", width=200, tag="test_input")
-            print(dpg.get_mouse_pos())
 
 
 
@@ -59,9 +57,6 @@ class MainApp:
         node_b = dpg.get_item_alias(app_data[1])
         alias_a = dpg.get_item_alias(dpg.get_item_children(node_a, slot=1)[0])
         alias_b = dpg.get_item_alias(dpg.get_item_children(node_b, slot=1)[0])
-        #print(node_a)
-        #print(node_b)
-        #print(dpg.get_item_info(app_data[1]))
         print(alias_a)
         print(alias_b)
         

@@ -57,22 +57,18 @@ class MainCameraFrameNode:
         with dpg.texture_registry(show=False):
             dpg.add_raw_texture(self.width, self.height, self.texture_data, tag="texture_tag", format=dpg.mvFormat_Float_rgb)
 
-        # Mostrar la nueva textura en la ventana
-        if dpg.does_item_exist("image_cam"):
-            dpg.configure_item(item="image_cam", texture_tag="texture_tag", width=self.width, height=self.height)
-            dpg.configure_item(item="image_input", texture_tag="texture_tag", width=self.width, height=self.height)
-        else:
-            with dpg.node(label="Webcam node output", tag="webcam_node"):
-                with dpg.node_attribute(label="Webcam output", attribute_type=dpg.mvNode_Attr_Output, tag="testing_alias_a"):
-                    dpg.add_image(texture_tag="texture_tag", tag="image_cam")
-                #with dpg.node_attribute(label="test", attribute_type=dpg.mvNode_Attr_Output):
-                #    dpg.add_input_float(label="test", width=200, tag="input_float_output", callback=self.update_input)
+    def gen_webcam_output_node(self):
+        with dpg.node(label="Webcam node output", tag="webcam_node", parent=self.parent):
+            with dpg.node_attribute(label="Webcam output", attribute_type=dpg.mvNode_Attr_Output, tag="testing_alias_a"):
+                dpg.add_image(texture_tag="texture_tag", tag="image_output")
 
-            with dpg.node(label="Webcam node input", tag="mediapipe_node"):
-                with dpg.node_attribute(label="Webcam input", attribute_type=dpg.mvNode_Attr_Input, tag="testing_alias_b"):
-                    dpg.add_image(texture_tag="texture_tag", tag="image_input")
-                #with dpg.node_attribute(label="test", attribute_type=dpg.mvNode_Attr_Input, tag="testing_alias_b"):
-                #    dpg.add_input_float(label="test", width=200, tag="input_float_input")
+    def gen_webcam_input_node(self):
+        black_texture_data = [0, 0, 0, 255] * (320 * 240)
+        with dpg.texture_registry():
+            black_texture_id = dpg.add_static_texture(320, 240, black_texture_data)
+        with dpg.node(label="Webcam node input", tag="mediapipe_node", parent=self.parent):
+            with dpg.node_attribute(label="Webcam input", attribute_type=dpg.mvNode_Attr_Input, tag="testing_alias_b"):
+                dpg.add_image(texture_tag=black_texture_id, tag="image_input")
 
     def update_input(self, sender, app_data):
         dpg.set_value("input_float_input", app_data)
