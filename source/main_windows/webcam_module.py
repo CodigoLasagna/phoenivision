@@ -7,7 +7,7 @@ class MainCameraFrameNode:
         self.parent = parent
         self.width = 320
         self.height = 240
-        self.fps = 30
+        self.fps = 60
         self.on_update = False
 
         with dpg.window(label="Opciones de la cámara"):
@@ -60,6 +60,7 @@ class MainCameraFrameNode:
         # Mostrar la nueva textura en la ventana
         if dpg.does_item_exist("image_cam"):
             dpg.configure_item(item="image_cam", texture_tag="texture_tag", width=self.width, height=self.height)
+            dpg.configure_item(item="image_input", texture_tag="texture_tag", width=self.width, height=self.height)
             #dpg.configure_item(item="webcam_node", width=self.width, height=self.height)
         else:
             #with dpg.window(label="webcam_menu", tag="webcam_menu"):
@@ -91,10 +92,10 @@ class MainCameraFrameNode:
                 self.configure_camera()
                 self.ret, self.frame = self.cap.read()
                 self.update_texture()
-                self.update_texture()
                 self.on_update = False
 
             if (dpg.does_item_exist("texture_tag")):
                 dpg.set_value("texture_tag", self.texture_data)
-            #self.update_texture()
-            dpg.render_dearpygui_frame()
+            else:
+                self.update_texture()
+

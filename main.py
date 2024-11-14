@@ -1,6 +1,7 @@
 import source.main_windows as mw_nodes
 import source.environment_front_module as efm
 import dearpygui.dearpygui as dpg
+import threading
 
 class MainApp:
     def __init__(self):
@@ -43,7 +44,8 @@ class MainApp:
         dpg.create_viewport() 
         dpg.setup_dearpygui()
         dpg.show_viewport()
-        self.camera_node.camera_loop()
+        #self.camera_node.camera_loop()
+        dpg.set_frame_callback(callback=threading.Thread(target=self.camera_node.camera_loop).start, frame=1)
         dpg.start_dearpygui()
         dpg.destroy_context()
 
