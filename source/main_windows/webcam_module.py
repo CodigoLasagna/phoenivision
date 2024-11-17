@@ -49,26 +49,13 @@ class MainCameraFrameNode:
         self.texture_data = np.true_divide(self.data, 255.0)  # Normalizar entre 0 y 1
 
         # Verificar si la textura ya existe y eliminarla si es necesario
-        if dpg.does_item_exist("texture_tag"):
-            dpg.delete_item("texture_tag")
-            dpg.remove_alias("texture_tag")
+        if dpg.does_item_exist("webcam_texture"):
+            dpg.delete_item("webcam_texture")
+            dpg.remove_alias("webcam_texture")
 
         # Crear una nueva textura con los valores actuales de width y height
         with dpg.texture_registry(show=False):
-            dpg.add_raw_texture(self.width, self.height, self.texture_data, tag="texture_tag", format=dpg.mvFormat_Float_rgb)
-
-    def gen_webcam_output_node(self):
-        with dpg.node(label="Webcam node output", tag="webcam_node", parent=self.parent):
-            with dpg.node_attribute(label="Webcam output", attribute_type=dpg.mvNode_Attr_Output, tag="testing_alias_a"):
-                dpg.add_image(texture_tag="texture_tag", tag="image_output")
-
-    def gen_webcam_input_node(self):
-        black_texture_data = [0, 0, 0, 255] * (320 * 240)
-        with dpg.texture_registry():
-            black_texture_id = dpg.add_static_texture(320, 240, black_texture_data)
-        with dpg.node(label="Webcam node input", tag="mediapipe_node", parent=self.parent):
-            with dpg.node_attribute(label="Webcam input", attribute_type=dpg.mvNode_Attr_Input, tag="testing_alias_b"):
-                dpg.add_image(texture_tag=black_texture_id, tag="image_input")
+            dpg.add_raw_texture(self.width, self.height, self.texture_data, tag="webcam_texture", format=dpg.mvFormat_Float_rgb)
 
     def update_input(self, sender, app_data):
         dpg.set_value("input_float_input", app_data)
@@ -92,8 +79,8 @@ class MainCameraFrameNode:
                 self.update_texture()
                 self.on_update = False
 
-            if (dpg.does_item_exist("texture_tag")):
-                dpg.set_value("texture_tag", self.texture_data)
+            if (dpg.does_item_exist("webcam_texture")):
+                dpg.set_value("webcam_texture", self.texture_data)
             else:
                 self.update_texture()
 

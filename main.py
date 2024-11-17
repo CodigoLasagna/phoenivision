@@ -1,3 +1,4 @@
+import source.nodes as main_nodes
 import source.main_windows as mw_nodes
 import source.environment_front_module as efm
 import dearpygui.dearpygui as dpg
@@ -5,6 +6,7 @@ import threading
 
 class MainApp:
     def __init__(self):
+        self.node_instances = {}
         # Inicializar contexto de dearpygui
         dpg.create_context()
         with dpg.font_registry():
@@ -27,11 +29,13 @@ class MainApp:
             self.camera_node.prepare_webcam()
 
         self.env_settings_modal = efm.ModalWindow(label="Configuración del entorno", fields=[""], buttons=[""], width=600, height=400)
+        #self.webcam_node_output = main_nodes.webcam_node.WebcamOutputNode("main_node_editor")
+        #self.mediapipe_out_it_node = main_nodes.webcam_node.MediapipeInputOutputNode("main_node_editor")
 
         # Crear menú contextual como ventana flotante
         with dpg.window(label="Nodos", modal=True, show=False, tag="right_click_menu", pos=(0, 0), autosize=True):
-            dpg.add_menu_item(label="Webcam output", callback=self.camera_node.gen_webcam_output_node)
-            dpg.add_menu_item(label="Webcam input", callback=self.camera_node.gen_webcam_input_node)
+            dpg.add_menu_item(label="Webcam output", callback=lambda: main_nodes.webcam_node.create_node(main_nodes.webcam_node.WebcamOutputNode, parent="main_node_editor", node_dictionary=self.node_instances))
+            dpg.add_menu_item(label="Webcam input", callback=lambda: main_nodes.webcam_node.create_node(main_nodes.webcam_node.MediapipeInputOutputNode, parent="main_node_editor", node_dictionary=self.node_instances))
 
         # Crear un handler para detectar clic derecho
         with dpg.handler_registry():
@@ -46,19 +50,27 @@ class MainApp:
             dpg.set_item_pos("right_click_menu", mouse_pos)
             dpg.show_item("right_click_menu")
 
-
-
-
-
     def link_callback(self, sender, app_data):
+        print(app_data)
         if (len(app_data) == 2):
             dpg.add_node_link(app_data[0], app_data[1], parent=sender)
         node_a = dpg.get_item_alias(app_data[0])
         node_b = dpg.get_item_alias(app_data[1])
-        alias_a = dpg.get_item_alias(dpg.get_item_children(node_a, slot=1)[0])
-        alias_b = dpg.get_item_alias(dpg.get_item_children(node_b, slot=1)[0])
-        print(alias_a)
-        print(alias_b)
+        node_a_class_name = dpg.get_item_alias(dpg.get_item_parent(node_a))
+        node_b_class_name = dpg.get_item_alias(dpg.get_item_parent(node_b))
+        #alias_a = dpg.get_item_alias(dpg.get_item_children(node_a, slot=1)[0])
+        #alias_b = dpg.get_item_alias(dpg.get_item_children(node_b, slot=1)[0])
+        #print(node_a_class_name)
+        #print(node_b_class_name)
+        #print(alias_a)
+        #print(alias_b)
+        node_a_instance = self.node_instances.get(node_a_class_name, None)
+        node_b_instance = self.node_instances.get(node_b_class_name, None)
+
+        node_a_instance.connected_node_output = node_b_instance
+        node_b_instance.connected_node_input = node_a_instance
+        #print(node_a_instance)
+        #print(node_b_instance)
         
 
     def delink_callback(self, sender, app_data):
