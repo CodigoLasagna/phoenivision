@@ -2,7 +2,7 @@ import dearpygui.dearpygui as dpg
 import cv2 as cv
 import numpy as np
 
-class MainCameraFrameNode:
+class MainCameraFrameNode():
     def __init__(self, parent):
         self.parent = parent
         self.width = 320

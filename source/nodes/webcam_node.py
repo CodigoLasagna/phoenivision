@@ -1,11 +1,10 @@
 import dearpygui.dearpygui as dpg
 import numpy as np
+from . import base_node as BN
 
-class WebcamOutputNode:
+class WebcamOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
-        self.parent = parent
-        self.connected_output_nodes = {}
-        self.tag = tag
+        super().__init__(parent, tag)
         self.create_node()
 
     def create_node(self):
@@ -18,12 +17,9 @@ class WebcamOutputNode:
     def update_connected_node_texture():
         pass
 
-class MediapipeInputOutputNode:
+class MediapipeInputOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
-        self.parent = parent
-        self.connected_input_nodes = {}
-        self.connected_output_nodes = {}
-        self.tag = tag
+        super().__init__(parent, tag)
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
             self.initial_texture_id = dpg.add_static_texture(320, 240, self.initial_texture_data)
