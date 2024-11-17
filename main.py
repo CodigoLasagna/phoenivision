@@ -4,10 +4,17 @@ import source.environment_front_module as efm
 import dearpygui.dearpygui as dpg
 import threading
 
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+
 class MainApp:
     def __init__(self):
         self.node_instances = {}
         self.links_instances = {}
+        self.current_threads = {}
+        self.current_textures_data = {}
         # Inicializar contexto de dearpygui
         dpg.create_context()
         with dpg.font_registry():
@@ -28,6 +35,7 @@ class MainApp:
         with dpg.node_editor(parent="main_window", tag="main_node_editor", callback=self.link_callback, delink_callback=self.delink_callback):
             self.camera_node = mw_nodes.webcam_module.MainCameraFrameNode("main_node_editor")
             self.camera_node.prepare_webcam()
+            self.current_textures_data["webcam_texture_data"] = self.camera_node.texture_data
 
         self.env_settings_modal = efm.ModalWindow(label="Configuración del entorno", fields=[""], buttons=[""], width=600, height=400)
 
@@ -63,7 +71,11 @@ class MainApp:
         node_b_instance = self.node_instances.get(node_b_class_name, None)
         node_a_instance.connected_output_nodes[node_a_atag] = node_b_instance
         node_b_instance.connected_input_nodes[node_b_atag] = node_a_instance
+        stop_event = threading.Event()
+        self.current_threads[link] = [threading.Thread(target=node_a_instance.update_output_atts, args=(stop_event,)), stop_event]
+        self.current_threads.get(link)[0].start()
         #threading.Thread(target=node_a_instance.update_output_atts).start()
+
 
         self.links_instances[link] = [
             [node_a_instance, node_a_atag],
@@ -72,6 +84,12 @@ class MainApp:
 
     def delink_callback(self, sender, app_data):
         dpg.delete_item(app_data)
+        cur_thread = self.current_threads.get(app_data)
+        print(cur_thread)
+        cur_thread[1].set()
+        cur_thread[0].join()
+
+        self.current_threads.pop(app_data)
         link_data = self.links_instances.get(app_data)
         link_data[0][0].connected_output_nodes.pop(link_data[0][1], None)
         link_data[1][0].connected_input_nodes.pop(link_data[1][1], None)
@@ -96,3 +114,5 @@ class MainApp:
 if __name__ == "__main__":
     app = MainApp()
     app.run()
+    for cur_thread in app.current_threads:
+        print(cur_thread)
