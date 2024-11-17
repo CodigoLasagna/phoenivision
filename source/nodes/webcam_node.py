@@ -4,7 +4,7 @@ import numpy as np
 class WebcamOutputNode:
     def __init__(self, parent, tag):
         self.parent = parent
-        self.connected_node_output = None
+        self.connected_output_nodes = {}
         self.tag = tag
         self.create_node()
 
@@ -21,8 +21,8 @@ class WebcamOutputNode:
 class MediapipeInputOutputNode:
     def __init__(self, parent, tag):
         self.parent = parent
-        self.connected_node_input = None
-        self.connected_node_output = None
+        self.connected_input_nodes = {}
+        self.connected_output_nodes = {}
         self.tag = tag
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():

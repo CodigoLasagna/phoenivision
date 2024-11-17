@@ -7,6 +7,7 @@ import threading
 class MainApp:
     def __init__(self):
         self.node_instances = {}
+        self.links_instances = {}
         # Inicializar contexto de dearpygui
         dpg.create_context()
         with dpg.font_registry():
@@ -51,30 +52,33 @@ class MainApp:
             dpg.show_item("right_click_menu")
 
     def link_callback(self, sender, app_data):
-        print(app_data)
+        #print(app_data)
         if (len(app_data) == 2):
-            dpg.add_node_link(app_data[0], app_data[1], parent=sender)
-        node_a = dpg.get_item_alias(app_data[0])
-        node_b = dpg.get_item_alias(app_data[1])
-        node_a_class_name = dpg.get_item_alias(dpg.get_item_parent(node_a))
-        node_b_class_name = dpg.get_item_alias(dpg.get_item_parent(node_b))
-        #alias_a = dpg.get_item_alias(dpg.get_item_children(node_a, slot=1)[0])
-        #alias_b = dpg.get_item_alias(dpg.get_item_children(node_b, slot=1)[0])
-        #print(node_a_class_name)
-        #print(node_b_class_name)
-        #print(alias_a)
-        #print(alias_b)
+            link = dpg.add_node_link(app_data[0], app_data[1], parent=sender)
+        node_a_atag = dpg.get_item_alias(app_data[0])
+        node_b_atag = dpg.get_item_alias(app_data[1])
+        node_a_class_name = dpg.get_item_alias(dpg.get_item_parent(node_a_atag))
+        node_b_class_name = dpg.get_item_alias(dpg.get_item_parent(node_b_atag))
+        #alias_a = dpg.get_item_alias(dpg.get_item_children(node_a_tag, slot=1)[0])
+        #alias_b = dpg.get_item_alias(dpg.get_item_children(node_b_tag, slot=1)[0])
         node_a_instance = self.node_instances.get(node_a_class_name, None)
         node_b_instance = self.node_instances.get(node_b_class_name, None)
+        node_a_instance.connected_output_nodes[node_a_atag] = node_b_instance
+        node_b_instance.connected_input_nodes[node_b_atag] = node_a_instance
 
-        node_a_instance.connected_node_output = node_b_instance
-        node_b_instance.connected_node_input = node_a_instance
-        #print(node_a_instance)
-        #print(node_b_instance)
-        
+        self.links_instances[link] = [
+            [node_a_instance, node_a_atag],
+            [node_b_instance, node_b_atag]
+        ]
 
     def delink_callback(self, sender, app_data):
         dpg.delete_item(app_data)
+        link_data = self.links_instances.get(app_data)
+        link_data[0][0].connected_output_nodes.pop(link_data[0][1], None)
+        link_data[1][0].connected_input_nodes.pop(link_data[1][1], None)
+
+
+        del self.links_instances[app_data]
 
     def open_settings_modal(self):
         self.env_settings_modal.show_popup()
