@@ -9,6 +9,6 @@ class BaseNode:
         """Método que debe ser implementado en las subclases"""
         raise NotImplementedError("Este método debe ser implementado en la subclase")
 
-    def update_connected_node_texture(self):
+    def update_output_atts(self):
         """Método para actualizar texturas en nodos conectados (puede sobrescribirse)"""
         pass

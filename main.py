@@ -30,8 +30,6 @@ class MainApp:
             self.camera_node.prepare_webcam()
 
         self.env_settings_modal = efm.ModalWindow(label="Configuración del entorno", fields=[""], buttons=[""], width=600, height=400)
-        #self.webcam_node_output = main_nodes.webcam_node.WebcamOutputNode("main_node_editor")
-        #self.mediapipe_out_it_node = main_nodes.webcam_node.MediapipeInputOutputNode("main_node_editor")
 
         # Crear menú contextual como ventana flotante
         with dpg.window(label="Nodos", modal=True, show=False, tag="right_click_menu", pos=(0, 0), autosize=True):
@@ -65,6 +63,7 @@ class MainApp:
         node_b_instance = self.node_instances.get(node_b_class_name, None)
         node_a_instance.connected_output_nodes[node_a_atag] = node_b_instance
         node_b_instance.connected_input_nodes[node_b_atag] = node_a_instance
+        #threading.Thread(target=node_a_instance.update_output_atts).start()
 
         self.links_instances[link] = [
             [node_a_instance, node_a_atag],

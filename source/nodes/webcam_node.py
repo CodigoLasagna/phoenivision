@@ -1,5 +1,5 @@
 import dearpygui.dearpygui as dpg
-import numpy as np
+#import numpy as np
 from . import base_node as BN
 
 class WebcamOutputNode(BN.BaseNode):
@@ -14,8 +14,10 @@ class WebcamOutputNode(BN.BaseNode):
             with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag="won_tag"):
                 dpg.add_image(texture_tag="webcam_texture", tag="image_output")
 
-    def update_connected_node_texture():
-        pass
+    def update_output_atts(self):
+        print("start")
+        while(True):
+            print("hi")
 
 class MediapipeInputOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
@@ -29,8 +31,11 @@ class MediapipeInputOutputNode(BN.BaseNode):
         if (dpg.does_item_exist("mediapipe_out_in_node")):
             return
         with dpg.node(label="Mediapipa Out/In node", tag=self.tag, parent=self.parent):
-            with dpg.node_attribute(label="Webcam input", attribute_type=dpg.mvNode_Attr_Input, tag="moin_tag"):
+            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag="moin_tag"):
                 dpg.add_image(texture_tag=self.initial_texture_id, tag="image_input")
+
+    def update_output_atts():
+        pass
 
 def create_node(node_class, parent, node_dictionary):
     tag = str(node_class.__name__)
@@ -39,4 +44,3 @@ def create_node(node_class, parent, node_dictionary):
         return
 
     node_dictionary[tag] = node_class(parent=parent, tag=tag)
-    #print(node_dictionary[tag])
