@@ -56,7 +56,7 @@ class MainCameraFrameNode():
         # Crear una nueva textura con los valores actuales de width y height
         with dpg.texture_registry(show=False):
             dpg.add_raw_texture(self.width, self.height, self.texture_data, tag="webcam_texture", format=dpg.mvFormat_Float_rgb)
-            dpg.set_item_user_data("webcam_texture", self.texture_data)
+            #dpg.set_item_user_data("webcam_texture", self.texture_data)
 
     def update_input(self, sender, app_data):
         dpg.set_value("input_float_input", app_data)

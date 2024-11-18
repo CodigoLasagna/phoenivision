@@ -18,6 +18,9 @@ class WebcamOutputNode(BN.BaseNode):
                 dpg.add_image(texture_tag="webcam_texture", tag="image_output")
 
     def update_output_atts(self, stop_thread):
+        if (self.update_loop == True):
+            return
+        self.update_loop = True
         while not(stop_thread.is_set()):
             #self.process_texture_data()
             #dpg.configure_item("image_input", texture_tag="webcam_texture")
@@ -30,14 +33,19 @@ class WebcamOutputNode(BN.BaseNode):
 class MediapipeInputOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
         super().__init__(parent, tag)
-        self.initial_texture_data = [0, 0, 0, 255] * (640 * 480)
+        self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
-            self.initial_texture_id = dpg.add_raw_texture(640, 480, self.initial_texture_data, tag="mediapipe_texture")
+            self.initial_texture_id = dpg.add_raw_texture(320, 240, self.initial_texture_data, tag="mediapipe_texture")
         self.create_node()
         #prepare mediapipe configs
         self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.2, min_tracking_confidence=0.5)
+        self.hands = self.mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.7)
         self.mp_drawing = mp.solutions.drawing_utils
+
+        self.mp_face_mesh = mp.solutions.face_mesh
+        self.face_mesh = self.mp_face_mesh.FaceMesh(max_num_faces=1, min_detection_confidence=0.7, min_tracking_confidence=0.7)
+
+
 
     def create_node(self):
         if (dpg.does_item_exist("mediapipe_out_in_node")):
@@ -57,23 +65,33 @@ class MediapipeInputOutputNode(BN.BaseNode):
     def process_texture_data(self):
         #prepare for mediapipe
         recovered_texture_data = dpg.get_item_user_data("webcam_texture")
-        image = (recovered_texture_data * 255).astype(np.uint8)
-        image = image.reshape((640, 480, 3))
+        #print(recovered_texture_data[1])
+        image = (recovered_texture_data * 255.0).astype(np.uint8)
+        image = image.reshape((240, 320, 3))
         #print(image.shape)
-        height, width, _ = image.shape
-        frame_bgr = cv.cvtColor(image, cv.COLOR_RGB2BGR)
+        #height, width, _ = image.shape
+        #frame_rgb = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+        frame_rgb = image
 
         #process with mediapip
-        results = self.hands.process(image)
+        results = self.hands.process(frame_rgb)
+        results2 = self.face_mesh.process(frame_rgb)
         #print(results)
 
         if (results.multi_hand_landmarks):
-            print(results.multi_hand_landmarks)
+            #print(results.multi_hand_landmarks)
             for landmarks in results.multi_hand_landmarks:
-                self.mp_drawing.draw_landmarks(frame_bgr, landmarks, self.mp_hands.HAND_CONNECTIONS)
+                self.mp_drawing.draw_landmarks(frame_rgb, landmarks, self.mp_hands.HAND_CONNECTIONS)
                 #print("landmarks: ", landmarks)
+        if (results2.multi_face_landmarks):
+            for face_landmarks in results2.multi_face_landmarks:
+                self.mp_drawing.draw_landmarks(
+                    image=frame_rgb,
+                    landmark_list=face_landmarks,
+                    connections=self.mp_face_mesh.FACEMESH_TESSELATION,
+                )
 
-        processed_bgr_to_rgb = cv.cvtColor(frame_bgr, cv.COLOR_BGR2RGB)
+        processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
 
 
@@ -81,6 +99,9 @@ class MediapipeInputOutputNode(BN.BaseNode):
 
 
     def update_output_atts(self, stop_thread):
+        if (self.update_loop == True):
+            return
+        self.update_loop = True
         while not(stop_thread.is_set()):
             pass
 

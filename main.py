@@ -69,8 +69,9 @@ class MainApp:
         #alias_b = dpg.get_item_alias(dpg.get_item_children(node_b_tag, slot=1)[0])
         node_a_instance = self.node_instances.get(node_a_class_name, None)
         node_b_instance = self.node_instances.get(node_b_class_name, None)
-        node_a_instance.connected_output_nodes[node_a_atag] = node_b_instance
-        node_b_instance.connected_input_nodes[node_b_atag] = node_a_instance
+        link_tag_name = node_a_atag+node_b_atag
+        node_a_instance.connected_output_nodes[link_tag_name] = node_b_instance
+        node_b_instance.connected_input_nodes[link_tag_name] = node_a_instance
         stop_event = threading.Event()
         self.current_threads[link] = [threading.Thread(target=node_a_instance.update_output_atts, args=(stop_event,)), stop_event]
         self.current_threads.get(link)[0].start()
@@ -85,12 +86,14 @@ class MainApp:
     def delink_callback(self, sender, app_data):
         dpg.delete_item(app_data)
         cur_thread = self.current_threads.get(app_data)
-        print(cur_thread)
-        cur_thread[1].set()
-        cur_thread[0].join()
+        link_data = self.links_instances.get(app_data)
+        if (len(link_data[0][0].connected_output_nodes) <= 1):
+            print("stoped_thread")
+            cur_thread[1].set()
+            cur_thread[0].join()
+        #print(cur_thread)
 
         self.current_threads.pop(app_data)
-        link_data = self.links_instances.get(app_data)
         link_data[0][0].connected_output_nodes.pop(link_data[0][1], None)
         link_data[1][0].connected_input_nodes.pop(link_data[1][1], None)
 

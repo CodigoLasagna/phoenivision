@@ -4,6 +4,7 @@ class BaseNode:
         self.connected_input_nodes = {}
         self.connected_output_nodes = {}
         self.tag = tag
+        self.update_loop = False
 
     def create_node(self):
         """Método que debe ser implementado en las subclases"""
