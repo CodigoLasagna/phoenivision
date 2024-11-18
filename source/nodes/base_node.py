@@ -1,8 +1,11 @@
+import threading
+
 class BaseNode:
     def __init__(self, parent, tag):
         self.parent = parent
         self.connected_input_nodes = {}
         self.connected_output_nodes = {}
+        self.lock = threading.Lock()
         self.tag = tag
         self.update_loop = False
 

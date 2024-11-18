@@ -41,8 +41,9 @@ class MainApp:
 
         # Crear menú contextual como ventana flotante
         with dpg.window(label="Nodos", modal=True, show=False, tag="right_click_menu", pos=(0, 0), autosize=True):
-            dpg.add_menu_item(label="Webcam output", callback=lambda: main_nodes.webcam_node.create_node(main_nodes.webcam_node.WebcamOutputNode, parent="main_node_editor", node_dictionary=self.node_instances))
-            dpg.add_menu_item(label="Webcam input", callback=lambda: main_nodes.webcam_node.create_node(main_nodes.webcam_node.MediapipeInputOutputNode, parent="main_node_editor", node_dictionary=self.node_instances))
+            dpg.add_menu_item(label="Webcam output node", callback=lambda: main_nodes.webcam_node.create_node(main_nodes.webcam_node.WebcamOutputNode, parent="main_node_editor", node_dictionary=self.node_instances))
+            dpg.add_menu_item(label="Webcam hands i/o node", callback=lambda: main_nodes.webcam_node.create_node(main_nodes.webcam_node.MediapipeInputHandsOutputNode, parent="main_node_editor", node_dictionary=self.node_instances))
+            dpg.add_menu_item(label="Webcam face i/o node", callback=lambda: main_nodes.webcam_node.create_node(main_nodes.webcam_node.MediapipeInputFaceOutputNode, parent="main_node_editor", node_dictionary=self.node_instances))
 
         # Crear un handler para detectar clic derecho
         with dpg.handler_registry():
@@ -79,21 +80,21 @@ class MainApp:
 
 
         self.links_instances[link] = [
-            [node_a_instance, node_a_atag],
-            [node_b_instance, node_b_atag]
+            [node_a_instance, link_tag_name], #NOTE: setup link_tag_name
+            [node_b_instance, link_tag_name]  #NOTE: setup link_tag_name
         ]
 
     def delink_callback(self, sender, app_data):
         dpg.delete_item(app_data)
         cur_thread = self.current_threads.get(app_data)
         link_data = self.links_instances.get(app_data)
-        if (len(link_data[0][0].connected_output_nodes) <= 1):
+        #print(len(link_data[0][0].connected_output_nodes))
+        if (len(link_data[0][0].connected_output_nodes) < 1):
             print("stoped_thread")
             cur_thread[1].set()
             cur_thread[0].join()
-        #print(cur_thread)
+            self.current_threads.pop(app_data)
 
-        self.current_threads.pop(app_data)
         link_data[0][0].connected_output_nodes.pop(link_data[0][1], None)
         link_data[1][0].connected_input_nodes.pop(link_data[1][1], None)
 
