@@ -30,7 +30,10 @@ class WebcamOutputNode(BN.BaseNode):
             #dpg.configure_item("image_input", texture_tag="webcam_texture")
             if not(self.lock):
                 break
+            #self.node_output_data = dpg.get_item_user_data("webcam_texture")
+            dpg.set_item_user_data("won_tag", dpg.get_item_user_data("webcam_texture"))
             for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
+                #self.
                 #self.connected_output_nodes.get(node).update_input_atts()
                 node_instance.update_input_atts()
             #print("node_a")
@@ -41,6 +44,7 @@ class WebcamOutputNode(BN.BaseNode):
 class MediapipeInputHandsOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
         super().__init__(parent, tag)
+        self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
             self.initial_texture_id = dpg.add_raw_texture(320, 240, self.initial_texture_data, tag=self.tag+"tex")
@@ -61,6 +65,9 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         with dpg.node(label="Mediapipe Hands Out/In node", tag=self.tag, parent=self.parent):
             with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag="mihon_tag"):
                 dpg.add_image(texture_tag=self.initial_texture_id, tag="himage_input")
+            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag="mohon_tag"):
+                #dpg.add_image(texture_tag=self.initial_texture_id, tag="data_output")
+                dpg.add_text("Data output")
 
     def update_input_atts(self):
         #print("node_b")
@@ -72,23 +79,28 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
 
     def process_texture_data(self):
         #prepare for mediapipe
-        recovered_texture_data = dpg.get_item_user_data("webcam_texture")
+        recovered_texture_data = dpg.get_item_user_data("won_tag")
+        #recovered_texture_data = self.connected_input_nodes.items()[0].data_output
+        #print(dpg.get_item_user_data("won_tag"))
         image = (recovered_texture_data * 255.0).astype(np.uint8)
         image = image.reshape((240, 320, 3))
         frame_rgb = image
 
         #process with mediapip
         results = self.hands.process(frame_rgb)
-        #print(results)
 
+        keypoints_combined = {}
         if (results.multi_hand_landmarks):
-            #print(results.multi_hand_landmarks)
-            for landmarks in results.multi_hand_landmarks:
-                self.mp_drawing.draw_landmarks(frame_rgb, landmarks, self.mp_hands.HAND_CONNECTIONS)
-                #print("landmarks: ", landmarks)
+            for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
+                hand_type = handedness.classification[0].label
+                keypoints = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
+                keypoints_combined[hand_type] = keypoints
+                self.mp_drawing.draw_landmarks(frame_rgb, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
+
+        self.node_output_data = keypoints_combined
 
 
         return processed_texture_data
@@ -100,11 +112,14 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         self.update_loop = True
         while not(stop_thread.is_set()):
             pass
+            if not(self.lock):
+                break
         self.update_loop = False
 
 class MediapipeInputFaceOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
         super().__init__(parent, tag)
+        self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
             self.initial_texture_id = dpg.add_raw_texture(320, 240, self.initial_texture_data, tag=self.tag+"tex")
@@ -163,6 +178,7 @@ class MediapipeInputFaceOutputNode(BN.BaseNode):
 class MediapipeInputPoseOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
         super().__init__(parent, tag)
+        self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
             self.initial_texture_id = dpg.add_raw_texture(320, 240, self.initial_texture_data, tag=self.tag+"tex")
@@ -220,6 +236,7 @@ class MediapipeInputPoseOutputNode(BN.BaseNode):
 class MediapipeInputFaceBOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
         super().__init__(parent, tag)
+        self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
             self.initial_texture_id = dpg.add_raw_texture(320, 240, self.initial_texture_data, tag=self.tag+"tex")
@@ -278,6 +295,7 @@ class MediapipeInputFaceBOutputNode(BN.BaseNode):
 class MediapipeInputObjectOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
         super().__init__(parent, tag)
+        self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
             self.initial_texture_id = dpg.add_raw_texture(320, 240, self.initial_texture_data, tag=self.tag+"tex")
@@ -320,6 +338,7 @@ class MediapipeInputObjectOutputNode(BN.BaseNode):
 
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
+        
 
 
         return processed_texture_data

@@ -1,5 +1,11 @@
 import threading
 
+from enum import Enum
+
+class NodeType(Enum):
+    PATTER_REC_NODE = 1
+    DATA_PROC_NODE = 2
+
 class BaseNode:
     def __init__(self, parent, tag):
         self.parent = parent
@@ -8,6 +14,9 @@ class BaseNode:
         self.lock = threading.Lock()
         self.tag = tag
         self.update_loop = False
+        self.node_input_data = None
+        self.node_output_data = None
+        self.node_type = 0
 
     def create_node(self):
         """Método que debe ser implementado en las subclases"""
