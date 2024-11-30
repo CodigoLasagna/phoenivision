@@ -9,11 +9,15 @@ class WebcamOutputNode(BN.BaseNode):
     def __init__(self, parent, tag):
         super().__init__(parent, tag)
         self.create_node()
+        mouse_pos = dpg.get_mouse_pos(local=False)
+        mouse_pos[0] = mouse_pos[0] - 180
+        mouse_pos[1] = mouse_pos[1] - 120
+        dpg.set_item_pos(self.tag, mouse_pos)
 
     def create_node(self):
         if (dpg.does_item_exist("webcam_output_node")):
             return
-        with dpg.node(label="Webcam output node", tag=self.tag, parent=self.parent):
+        with dpg.node(label="webcam_output_node", tag=self.tag, parent=self.parent):
             with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag="won_tag"):
                 dpg.add_image(texture_tag="webcam_texture", tag="image_output")
 
@@ -45,6 +49,10 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.7)
         self.mp_drawing = mp.solutions.drawing_utils
+        mouse_pos = dpg.get_mouse_pos(local=False)
+        mouse_pos[0] = mouse_pos[0] - 180
+        mouse_pos[1] = mouse_pos[1] - 120
+        dpg.set_item_pos(self.tag, mouse_pos)
 
 
     def create_node(self):
@@ -105,6 +113,10 @@ class MediapipeInputFaceOutputNode(BN.BaseNode):
         self.mp_face_mesh = mp.solutions.face_mesh
         self.face_mesh = self.mp_face_mesh.FaceMesh(max_num_faces=1, min_detection_confidence=0.7, min_tracking_confidence=0.7)
         self.mp_drawing = mp.solutions.drawing_utils
+        mouse_pos = dpg.get_mouse_pos(local=False)
+        mouse_pos[0] = mouse_pos[0] - 180
+        mouse_pos[1] = mouse_pos[1] - 120
+        dpg.set_item_pos(self.tag, mouse_pos)
 
     def create_node(self):
         if (dpg.does_item_exist(self.tag)):
@@ -159,6 +171,10 @@ class MediapipeInputPoseOutputNode(BN.BaseNode):
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.7, min_tracking_confidence=0.7)
         self.mp_drawing = mp.solutions.drawing_utils
+        mouse_pos = dpg.get_mouse_pos(local=False)
+        mouse_pos[0] = mouse_pos[0] - 180
+        mouse_pos[1] = mouse_pos[1] - 120
+        dpg.set_item_pos(self.tag, mouse_pos)
 
     def create_node(self):
         if (dpg.does_item_exist(self.tag)):
@@ -212,6 +228,10 @@ class MediapipeInputFaceBOutputNode(BN.BaseNode):
         self.mp_face_det = mp.solutions.face_detection
         self.face_det = self.mp_face_det.FaceDetection(min_detection_confidence=0.7)
         self.mp_drawing = mp.solutions.drawing_utils
+        mouse_pos = dpg.get_mouse_pos(local=False)
+        mouse_pos[0] = mouse_pos[0] - 180
+        mouse_pos[1] = mouse_pos[1] - 120
+        dpg.set_item_pos(self.tag, mouse_pos)
 
     def create_node(self):
         if (dpg.does_item_exist(self.tag)):
@@ -266,6 +286,10 @@ class MediapipeInputObjectOutputNode(BN.BaseNode):
         self.mp_objectron = mp.solutions.objectron
         self.objectron = self.mp_objectron.Objectron(static_image_mode=False, max_num_objects=5, min_detection_confidence=0.5, min_tracking_confidence=0.5)
         self.mp_drawing = mp.solutions.drawing_utils
+        mouse_pos = dpg.get_mouse_pos(local=False)
+        mouse_pos[0] = mouse_pos[0] - 180
+        mouse_pos[1] = mouse_pos[1] - 120
+        dpg.set_item_pos(self.tag, mouse_pos)
 
     def create_node(self):
         if (dpg.does_item_exist(self.tag)):
@@ -319,3 +343,4 @@ def create_node(node_class, parent, node_dictionary):
         return
 
     node_dictionary[tag] = node_class(parent=parent, tag=tag)
+    #print(node_dictionary[tag])
