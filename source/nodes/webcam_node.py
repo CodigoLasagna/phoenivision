@@ -14,9 +14,11 @@ class WebcamOutputNode(BN.BaseNode):
         mouse_pos[1] = mouse_pos[1] - 120
         dpg.set_item_pos(self.tag, mouse_pos)
         self.node_type = BN.NodeType.WEBCAM_BASE_NODE
+        self.children_tags.append(self.tag+"_out_tag")
+        self.children_tags.append("image_output")
 
     def create_node(self):
-        if (dpg.does_item_exist("webcam_output_node")):
+        if (dpg.does_item_exist(self.tag)):
             return
         with dpg.node(label="webcam_output_node", tag=self.tag, parent=self.parent):
             with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
@@ -39,7 +41,6 @@ class WebcamOutputNode(BN.BaseNode):
                 node_instance.update_input_atts()
             #print("node_a")
         self.update_loop = False
-    
 
 
 class MediapipeInputHandsOutputNode(BN.BaseNode):
@@ -58,6 +59,9 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         mouse_pos[0] = mouse_pos[0] - 180
         mouse_pos[1] = mouse_pos[1] - 120
         dpg.set_item_pos(self.tag, mouse_pos)
+        self.children_tags.append(self.tag+"tex")
+        self.children_tags.append(self.tag+"_in_tag")
+        self.children_tags.append(self.tag+"_out_tag")
 
 
     def create_node(self):
@@ -69,11 +73,13 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
             with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
                 dpg.add_text("Data output")
 
+
     def update_input_atts(self):
         #print("node_b")
         #dpg.configure_item("mediapipe_texture", default_value=dpg.get_item_user_data("webcam_texture"), format=dpg.mvFormat_Float_rgb)
         new_texture_data = self.process_texture_data()
-        dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
+        if dpg.does_item_exist(self.tag+"tex"):
+            dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
         #dpg.set_value("mediapipe_texture", )
         #dpg.configure_item("image_input", texture_tag="mediapipe_texture")
 
@@ -133,6 +139,9 @@ class MediapipeInputFaceOutputNode(BN.BaseNode):
         mouse_pos[0] = mouse_pos[0] - 180
         mouse_pos[1] = mouse_pos[1] - 120
         dpg.set_item_pos(self.tag, mouse_pos)
+        self.children_tags.append(self.tag+"tex")
+        self.children_tags.append(self.tag+"_in_tag")
+        self.children_tags.append(self.tag+"_out_tag")
 
     def create_node(self):
         if (dpg.does_item_exist(self.tag)):
@@ -145,7 +154,8 @@ class MediapipeInputFaceOutputNode(BN.BaseNode):
 
     def update_input_atts(self):
         new_texture_data = self.process_texture_data()
-        dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
+        if dpg.does_item_exist(self.tag+"tex"):
+            dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
 
     def process_texture_data(self):
         #prepare for mediapipe
@@ -194,6 +204,9 @@ class MediapipeInputPoseOutputNode(BN.BaseNode):
         mouse_pos[0] = mouse_pos[0] - 180
         mouse_pos[1] = mouse_pos[1] - 120
         dpg.set_item_pos(self.tag, mouse_pos)
+        self.children_tags.append(self.tag+"tex")
+        self.children_tags.append(self.tag+"_in_tag")
+        self.children_tags.append(self.tag+"_out_tag")
 
     def create_node(self):
         if (dpg.does_item_exist(self.tag)):
@@ -206,7 +219,8 @@ class MediapipeInputPoseOutputNode(BN.BaseNode):
 
     def update_input_atts(self):
         new_texture_data = self.process_texture_data()
-        dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
+        if dpg.does_item_exist(self.tag+"tex"):
+            dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
 
     def process_texture_data(self):
         #prepare for mediapipe
@@ -254,6 +268,9 @@ class MediapipeInputFaceBOutputNode(BN.BaseNode):
         mouse_pos[0] = mouse_pos[0] - 180
         mouse_pos[1] = mouse_pos[1] - 120
         dpg.set_item_pos(self.tag, mouse_pos)
+        self.children_tags.append(self.tag+"tex")
+        self.children_tags.append(self.tag+"_in_tag")
+        self.children_tags.append(self.tag+"_out_tag")
 
     def create_node(self):
         if (dpg.does_item_exist(self.tag)):
@@ -266,7 +283,8 @@ class MediapipeInputFaceBOutputNode(BN.BaseNode):
 
     def update_input_atts(self):
         new_texture_data = self.process_texture_data()
-        dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
+        if dpg.does_item_exist(self.tag+"tex"):
+            dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
 
     def process_texture_data(self):
         #prepare for mediapipe
@@ -315,6 +333,9 @@ class MediapipeInputObjectOutputNode(BN.BaseNode):
         mouse_pos[0] = mouse_pos[0] - 180
         mouse_pos[1] = mouse_pos[1] - 120
         dpg.set_item_pos(self.tag, mouse_pos)
+        self.children_tags.append(self.tag+"tex")
+        self.children_tags.append(self.tag+"_in_tag")
+        self.children_tags.append(self.tag+"_out_tag")
 
     def create_node(self):
         if (dpg.does_item_exist(self.tag)):
@@ -327,7 +348,8 @@ class MediapipeInputObjectOutputNode(BN.BaseNode):
 
     def update_input_atts(self):
         new_texture_data = self.process_texture_data()
-        dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
+        if dpg.does_item_exist(self.tag+"tex"):
+            dpg.configure_item(self.tag+"tex", default_value=new_texture_data, format=dpg.mvFormat_Float_rgb)
 
     def process_texture_data(self):
         #prepare for mediapipe

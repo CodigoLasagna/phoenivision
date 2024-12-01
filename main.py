@@ -6,7 +6,9 @@ import threading
 
 import os
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ["GRPC_VERBOSITY"] = "ERROR"
+os.environ["GLOG_minloglevel"] = "2"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 
 class MainApp:
@@ -57,7 +59,7 @@ class MainApp:
 
         self.env_settings_modal = efm.ModalWindow(label="Configuración del entorno", fields=[""], buttons=[""], width=600, height=400)
 
-        # Crear menú contextual como ventana flotante
+            #dpg.add_menu_iem(label="Delete", callback=lambda: self.gen_node(main_nodes.webcam_node.WebcamOutputNode))
         with dpg.window(label="Nodos", modal=True, show=False, tag="right_click_menu", pos=(0, 0), autosize=True):
             dpg.add_menu_item(label="Webcam output node", callback=lambda: self.gen_node(main_nodes.webcam_node.WebcamOutputNode))
             with dpg.menu(label="patter recognition"):
@@ -78,7 +80,12 @@ class MainApp:
             if (node.tag in self.nodes_list_menu_items):
                 continue
             self.nodes_list_menu_items[node.tag] = [
-                    dpg.add_button(parent="nodes_item_panel", label=node.tag, width=int(dpg.get_item_rect_size("top_right_panel")[0] - 16)),
+                    dpg.add_combo(parent="nodes_item_panel", width=int(dpg.get_item_rect_size("top_right_panel")[0] - 16),
+                        default_value=node.tag+"_options",
+                        items=["Eliminar"],
+                        callback=lambda sender: self.node_combo_item(node.tag, dpg.get_value(sender)),
+                        tag=node.tag+"_options"
+                    ),
                     node
                 ]
 
@@ -153,6 +160,40 @@ class MainApp:
             (enums.DATA_PROC_NODE, enums.PATTER_REC_NODE)
         ]
         return  (node_a.node_type, node_b.node_type) in valid_combinations
+    
+    def delete_node(self, node_tag):
+        node_instance = self.node_instances.get(node_tag)
+        if not node_instance:
+            return
+
+        for link_tag, connected_node in list(node_instance.connected_output_nodes.items()):
+            link_item = next(
+                    (key for key, value in self.links_instances.items() if value[0][1] == link_tag)
+                    , None
+            )
+            if link_item:
+                self.delink_callback("main_node_editor", link_item)
+
+        for link_tag, connected_node in list(node_instance.connected_input_nodes.items()):
+            link_item = next(
+                (key for key, value in self.links_instances.items() if value[1][1] == link_tag),
+                None
+            )
+            if link_item:
+                self.delink_callback("main_node_editor", link_item)
+
+        dpg.delete_item(node_instance.tag)
+        self.node_instances.pop(node_tag, None)
+        node_instance.clear_self()
+        menu_item = self.nodes_list_menu_items.pop(node_tag, None)
+        if (menu_item):
+            dpg.delete_item(menu_item[0])
+    def node_combo_item(self, node, selected_option):
+        dpg.configure_item(node+"_options", default_value=node+"_options")
+        if (selected_option == "Eliminar"):
+            self.delete_node(node)
+
+
 
     def delink_callback(self, sender, app_data):
         dpg.delete_item(app_data)
@@ -160,7 +201,7 @@ class MainApp:
         link_data = self.links_instances.get(app_data)
         print(len(link_data[0][0].connected_output_nodes))
         if (len(link_data[0][0].connected_output_nodes) <= 1):
-            print("stoped_thread")
+            #print("stoped_thread")
             cur_thread[1].set()
             cur_thread[0].join()
             self.current_threads.pop(app_data)

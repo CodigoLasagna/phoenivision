@@ -1,4 +1,5 @@
 import threading
+import dearpygui.dearpygui as dpg
 
 from enum import Enum
 
@@ -20,6 +21,7 @@ class BaseNode:
         self.node_input_data = None
         self.node_output_data = None
         self.node_type = 0
+        self.children_tags = []
 
     def create_node(self):
         """Método que debe ser implementado en las subclases"""
@@ -28,3 +30,7 @@ class BaseNode:
     def update_output_atts(self):
         """Método para actualizar texturas en nodos conectados (puede sobrescribirse)"""
         pass
+
+    def clear_self(self):
+        for ctag in self.children_tags:
+            dpg.delete_item(ctag)
