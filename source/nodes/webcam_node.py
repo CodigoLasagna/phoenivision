@@ -36,8 +36,6 @@ class WebcamOutputNode(BN.BaseNode):
             #self.node_output_data = dpg.get_item_user_data("webcam_texture")
             #dpg.set_item_user_data("won_tag", dpg.get_item_user_data("webcam_texture"))
             for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
-                #self.
-                #self.connected_output_nodes.get(node).update_input_atts()
                 node_instance.update_input_atts()
             #print("node_a")
         self.update_loop = False
@@ -107,7 +105,7 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
 
-        self.node_output_data = keypoints_combined
+        #self.node_output_data = keypoints_combined
 
 
         return processed_texture_data
@@ -121,6 +119,8 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
             pass
             if not(self.lock):
                 break
+            for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
+                node_instance.update_input_atts()
         self.update_loop = False
 
 class MediapipeInputFaceOutputNode(BN.BaseNode):

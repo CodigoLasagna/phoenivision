@@ -62,13 +62,15 @@ class MainApp:
             #dpg.add_menu_iem(label="Delete", callback=lambda: self.gen_node(main_nodes.webcam_node.WebcamOutputNode))
         with dpg.window(label="Nodos", modal=True, show=False, tag="right_click_menu", pos=(0, 0), autosize=True):
             dpg.add_menu_item(label="Webcam output node", callback=lambda: self.gen_node(main_nodes.webcam_node.WebcamOutputNode))
-            with dpg.menu(label="patter recognition"):
+            with dpg.menu(label="Pattern recognition"):
                 dpg.add_menu_item(label="Webcam hands i/o node", callback=lambda: self.gen_node(main_nodes.webcam_node.MediapipeInputHandsOutputNode))
                 with dpg.menu(label="face recognition"):
                     dpg.add_menu_item(label="Webcam face i/o node", callback=lambda: self.gen_node(main_nodes.webcam_node.MediapipeInputFaceOutputNode))
                     dpg.add_menu_item(label="Webcam face b i/o node", callback=lambda: self.gen_node(main_nodes.webcam_node.MediapipeInputFaceBOutputNode))
                 dpg.add_menu_item(label="Webcam pose i/o node", callback=lambda: self.gen_node(main_nodes.webcam_node.MediapipeInputPoseOutputNode))
                 dpg.add_menu_item(label="Webcam object i/o node", callback=lambda: self.gen_node(main_nodes.webcam_node.MediapipeInputObjectOutputNode))
+            with dpg.menu(label="Data Processing"):
+                dpg.add_menu_item(label="DataColectorNode", callback=lambda: self.gen_node(main_nodes.processing_nodes.DataColectorNode))
 
         # Crear un handler para detectar clic derecho
         with dpg.handler_registry():
