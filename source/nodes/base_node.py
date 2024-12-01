@@ -3,6 +3,7 @@ import threading
 from enum import Enum
 
 class NodeType(Enum):
+    WEBCAM_BASE_NODE = 0
     PATTER_REC_NODE = 1
     DATA_PROC_NODE = 2
 
@@ -11,6 +12,8 @@ class BaseNode:
         self.parent = parent
         self.connected_input_nodes = {}
         self.connected_output_nodes = {}
+        self.own_inputs = []
+        self.own_outputs = []
         self.lock = threading.Lock()
         self.tag = tag
         self.update_loop = False

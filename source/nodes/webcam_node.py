@@ -13,12 +13,13 @@ class WebcamOutputNode(BN.BaseNode):
         mouse_pos[0] = mouse_pos[0] - 180
         mouse_pos[1] = mouse_pos[1] - 120
         dpg.set_item_pos(self.tag, mouse_pos)
+        self.node_type = BN.NodeType.WEBCAM_BASE_NODE
 
     def create_node(self):
         if (dpg.does_item_exist("webcam_output_node")):
             return
         with dpg.node(label="webcam_output_node", tag=self.tag, parent=self.parent):
-            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag="won_tag"):
+            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
                 dpg.add_image(texture_tag="webcam_texture", tag="image_output")
 
     def update_output_atts(self, stop_thread):
@@ -31,7 +32,7 @@ class WebcamOutputNode(BN.BaseNode):
             if not(self.lock):
                 break
             #self.node_output_data = dpg.get_item_user_data("webcam_texture")
-            dpg.set_item_user_data("won_tag", dpg.get_item_user_data("webcam_texture"))
+            #dpg.set_item_user_data("won_tag", dpg.get_item_user_data("webcam_texture"))
             for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
                 #self.
                 #self.connected_output_nodes.get(node).update_input_atts()
@@ -63,10 +64,9 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         if (dpg.does_item_exist(self.tag)):
             return
         with dpg.node(label="Mediapipe Hands Out/In node", tag=self.tag, parent=self.parent):
-            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag="mihon_tag"):
-                dpg.add_image(texture_tag=self.initial_texture_id, tag="himage_input")
-            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag="mohon_tag"):
-                #dpg.add_image(texture_tag=self.initial_texture_id, tag="data_output")
+            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag=self.tag+"_in_tag"):
+                dpg.add_image(texture_tag=self.initial_texture_id)
+            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
                 dpg.add_text("Data output")
 
     def update_input_atts(self):
@@ -79,7 +79,8 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
 
     def process_texture_data(self):
         #prepare for mediapipe
-        recovered_texture_data = dpg.get_item_user_data("won_tag")
+        #recovered_texture_data = dpg.get_item_user_data("won_tag")
+        recovered_texture_data = dpg.get_item_user_data("webcam_texture")
         #recovered_texture_data = self.connected_input_nodes.items()[0].data_output
         #print(dpg.get_item_user_data("won_tag"))
         image = (recovered_texture_data * 255.0).astype(np.uint8)
@@ -137,8 +138,10 @@ class MediapipeInputFaceOutputNode(BN.BaseNode):
         if (dpg.does_item_exist(self.tag)):
             return
         with dpg.node(label="Mediapipe Face Out/In node", tag=self.tag, parent=self.parent):
-            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag="mifon_tag"):
-                dpg.add_image(texture_tag=self.initial_texture_id, tag="fimage_input")
+            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag=self.tag+"_in_tag"):
+                dpg.add_image(texture_tag=self.initial_texture_id)
+            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
+                dpg.add_text("Data output")
 
     def update_input_atts(self):
         new_texture_data = self.process_texture_data()
@@ -196,8 +199,10 @@ class MediapipeInputPoseOutputNode(BN.BaseNode):
         if (dpg.does_item_exist(self.tag)):
             return
         with dpg.node(label="Mediapipe Pose Out/In node", tag=self.tag, parent=self.parent):
-            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag="mipon_tag"):
-                dpg.add_image(texture_tag=self.initial_texture_id, tag="pimage_input")
+            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag=self.tag+"_in_tag"):
+                dpg.add_image(texture_tag=self.initial_texture_id)
+            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
+                dpg.add_text("Data output")
 
     def update_input_atts(self):
         new_texture_data = self.process_texture_data()
@@ -254,8 +259,10 @@ class MediapipeInputFaceBOutputNode(BN.BaseNode):
         if (dpg.does_item_exist(self.tag)):
             return
         with dpg.node(label="Mediapipe Face Basic Out/In node", tag=self.tag, parent=self.parent):
-            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag="mifbon_tag"):
-                dpg.add_image(texture_tag=self.initial_texture_id, tag="fbimage_input")
+            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag=self.tag+"_in_tag"):
+                dpg.add_image(texture_tag=self.initial_texture_id)
+            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
+                dpg.add_text("Data output")
 
     def update_input_atts(self):
         new_texture_data = self.process_texture_data()
@@ -313,8 +320,10 @@ class MediapipeInputObjectOutputNode(BN.BaseNode):
         if (dpg.does_item_exist(self.tag)):
             return
         with dpg.node(label="Mediapipe Object Out/In node", tag=self.tag, parent=self.parent):
-            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag="mioon_tag"):
-                dpg.add_image(texture_tag=self.initial_texture_id, tag="oimage_input")
+            with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag=self.tag+"_in_tag"):
+                dpg.add_image(texture_tag=self.initial_texture_id)
+            with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
+                dpg.add_text("Data output")
 
     def update_input_atts(self):
         new_texture_data = self.process_texture_data()

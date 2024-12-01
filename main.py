@@ -118,16 +118,19 @@ class MainApp:
 
     def link_callback(self, sender, app_data):
         #print(app_data)
-        if (len(app_data) == 2):
-            link = dpg.add_node_link(app_data[0], app_data[1], parent=sender)
         node_a_atag = dpg.get_item_alias(app_data[0])
         node_b_atag = dpg.get_item_alias(app_data[1])
         node_a_class_name = dpg.get_item_alias(dpg.get_item_parent(node_a_atag))
         node_b_class_name = dpg.get_item_alias(dpg.get_item_parent(node_b_atag))
-        #alias_a = dpg.get_item_alias(dpg.get_item_children(node_a_tag, slot=1)[0])
-        #alias_b = dpg.get_item_alias(dpg.get_item_children(node_b_tag, slot=1)[0])
         node_a_instance = self.node_instances.get(node_a_class_name, None)
         node_b_instance = self.node_instances.get(node_b_class_name, None)
+        #if (node_a_instance.node_type)
+        if (not self.check_compatible_node_types(node_a_instance, node_b_instance)):
+            return
+        if (len(app_data) == 2):
+            link = dpg.add_node_link(app_data[0], app_data[1], parent=sender)
+        #alias_a = dpg.get_item_alias(dpg.get_item_children(node_a_tag, slot=1)[0])
+        #alias_b = dpg.get_item_alias(dpg.get_item_children(node_b_tag, slot=1)[0])
         link_tag_name = node_a_atag+node_b_atag
         node_a_instance.connected_output_nodes[link_tag_name] = node_b_instance
         node_b_instance.connected_input_nodes[link_tag_name] = node_a_instance
@@ -141,6 +144,15 @@ class MainApp:
             [node_a_instance, link_tag_name], #NOTE: setup link_tag_name
             [node_b_instance, link_tag_name]  #NOTE: setup link_tag_name
         ]
+    def check_compatible_node_types(self, node_a, node_b):
+        enums = main_nodes.base_node.NodeType
+        valid_combinations = [
+            (enums.WEBCAM_BASE_NODE, enums.PATTER_REC_NODE),
+            (enums.PATTER_REC_NODE, enums.WEBCAM_BASE_NODE),
+            (enums.PATTER_REC_NODE, enums.DATA_PROC_NODE),
+            (enums.DATA_PROC_NODE, enums.PATTER_REC_NODE)
+        ]
+        return  (node_a.node_type, node_b.node_type) in valid_combinations
 
     def delink_callback(self, sender, app_data):
         dpg.delete_item(app_data)
