@@ -38,6 +38,14 @@ class StaticDatabaseManagerNode(BN.BaseNode):
                 with dpg.group(tag=self.tag+"extra_panel", width=530, height=32):
                     pass
                 dpg.bind_item_theme(self.tag+"extra_panel", Themer.create_color_window_theme())
+                dpg.add_button(label="Tags", width=530, tag=self.tag+"tags_table_header")
+                dpg.bind_item_theme(self.tag+"tags_table_header", Themer.make_button_title())
+                with dpg.table(header_row=False, width=530, height=128, scrollY=True):
+                    dpg.add_table_column(width_fixed=True)
+
+                    with dpg.table_row():
+                        with dpg.group(tag=self.tag+"_tags_list", width=530, height=32):
+                            pass
 
             with dpg.node_attribute(label="output_att", attribute_type=dpg.mvNode_Attr_Output, tag=self.tag+"_out_tag"):
                 dpg.add_text("Data output")
@@ -81,11 +89,12 @@ class StaticDatabaseManagerNode(BN.BaseNode):
 
             temp_item = dpg.add_button(label="Crear DB", tag=self.tag+"save_db_btn", callback=self.save_database)
             dpg.bind_item_theme(self.tag+"save_db_btn", Themer.create_green_btn_theme())
-            temp_item = dpg.add_button(label="Cargar Datos", tag=self.tag+"save_db_btn", callback=self.save_database)
-            dpg.bind_item_theme(self.tag+"save_db_btn", Themer.create_green_btn_theme())
 
             temp_item = dpg.add_button(label="Capturar datos", callback=self.save_timed_snapshots)
             dpg.bind_item_theme(temp_item, Themer.create_yellow_btn_theme())
+
+            temp_item = dpg.add_button(label="Cargar Datos", tag=self.tag+"load_data", callback=self.load_data_from_db)
+            dpg.bind_item_theme(self.tag+"load_data", Themer.create_blue_btn_theme())
         
         # Grupo para "Cargar modelo"
         with dpg.group(parent=self.tag + "extra_panel", tag=self.tag + "extra_panel_radio_load_model", show=False):
@@ -119,13 +128,47 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             return
         if (self.current_data_type == 0):
             writer = csv.writer(csvfile)
-            writer.writerow(['type: 0'])
-            writer.writerow(['gesture_label', 'keypoints_left_hand', 'keypoints_right_hand'])
+            writer.writerow([self.current_data_type])
+            writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
+
+    def load_data_from_db(self, show_flag_messages=True):
+        fixed_file_name = dpg.get_value(self.tag+"db_name_file")
+        fixed_file_name = fixed_file_name.replace(" ", "_")
+        file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
+        if (len(fixed_file_name) < 1):
+            if (show_flag_messages):
+                dpg.configure_item(self.tag+"status_node_tag", label="Nombre no valido")
+                dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
+            return
+        if not (file_to_open.exists()):
+            if (show_flag_messages):
+                dpg.configure_item(self.tag+"status_node_tag", label="DB no encontrado")
+                dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
+            return
+        db = open(file_to_open, 'r')
+        db_data_type = next(db)
+        reader = csv.DictReader(db)
+        values = list()
+        #db_data_type = 
+        if (db_data_type):
+            pass
+            #print("db datatype: " + str(db_data_type))
+        for row in reader:
+            if not (row['tag'] in values):
+                values.append(row['tag'])
+        if (show_flag_messages):
+            dpg.configure_item(self.tag+"status_node_tag", label="Datos cargados")
+            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
+        #children = dpg.get_item_children(self.tag+"tags_list")
+        #print(children)
+        dpg.delete_item(self.tag+"_tags_list", children_only=True)
+        for val in values:
+            dpg.add_text(parent=self.tag+"_tags_list", default_value=val)
+        dpg.configure_item(self.tag+"tags_table_header", label="Tags: ("+str(len(values))+")")
 
     def load_existing_databases(self):
         csv_dbs = [file.name for file in self.database_open_path.iterdir() if file.suffix == '.csv']
         dpg.configure_item(self.tag+"extra_panel_db_combo", items=csv_dbs)
-        #print(csv_dbs)
 
     def save_timed_snapshots(self):
         if (self.capturing):
@@ -149,12 +192,10 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
             time.sleep(miliseconds)
 
-
         dpg.configure_item(self.tag+"status_node_tag", label="Captura finalizada")
         dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
         self.capturing = False
-
-
+        self.load_data_from_db(show_flag_messages=False)
 
     def save_snapshot(self):
         self.initialize_csv()
@@ -168,8 +209,6 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             fixed_gesture_label = dpg.get_value(self.tag+"gesture_label_tag").replace(' ', '_')
             writer.writerow([fixed_gesture_label, self.received_tracked_data[0], self.received_tracked_data[1]])
 
-
-    
     def toggle_sections(self, sender, app_data):
         if app_data == "Nueva DB":
             dpg.configure_item(self.tag + "extra_panel_radio_new_model", show=True)
