@@ -72,6 +72,7 @@ class MainApp:
                 dpg.add_menu_item(label="Webcam object i/o node", callback=lambda: self.gen_node(main_nodes.webcam_node.MediapipeInputObjectOutputNode))
             with dpg.menu(label="Data Processing"):
                 dpg.add_menu_item(label="DataColectorNode", callback=lambda: self.gen_node(main_nodes.processing_nodes.StaticDatabaseManagerNode))
+                dpg.add_menu_item(label="MultiGraphCapNode", callback=lambda: self.gen_node(main_nodes.processing_nodes.MultiGraphCapNode))
 
         # Crear un handler para detectar clic derecho
         with dpg.handler_registry():
