@@ -109,17 +109,18 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
                 # Se detectan ambas manos, agregamos los puntos de ambas
                 keypoints_left = [(lm.x, lm.y, lm.z) for lm in results.multi_hand_landmarks[0].landmark]  # Mano izquierda
                 keypoints_right = [(lm.x, lm.y, lm.z) for lm in results.multi_hand_landmarks[1].landmark]  # Mano derecha
-                keypoints_combined.extend([keypoints_left, keypoints_right])
+                keypoints_combined.extend([keypoints_right, keypoints_left])
         
             elif len(results.multi_hand_landmarks) == 1:
                 # Si solo se detecta una mano, la colocamos en el lugar correcto
                 hand_landmarks = results.multi_hand_landmarks[0].landmark
                 keypoints = [(lm.x, lm.y, lm.z) for lm in hand_landmarks]
                 
+                #la imagen esta volteada
                 if "Left" in results.multi_handedness[0].classification[0].label:  # Si es mano izquierda
-                    keypoints_combined.extend([keypoints, [dummy_value] * 21])  # Agregamos la mano izquierda
-                else:  # Si es mano derecha
                     keypoints_combined.extend([[dummy_value] * 21, keypoints])  # Agregamos la mano izquierda
+                else:  # Si es mano derecha
+                    keypoints_combined.extend([keypoints, [dummy_value] * 21])  # Agregamos la mano izquierda
 
             for landmarks in results.multi_hand_landmarks:
                 self.mp_drawing.draw_landmarks(frame_rgb, landmarks, self.mp_hands.HAND_CONNECTIONS)

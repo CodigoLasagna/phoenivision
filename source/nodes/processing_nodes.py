@@ -24,6 +24,8 @@ class StaticDatabaseManagerNode(BN.BaseNode):
         self.database_dir = "./app_data/databases"
         self.database_open_path = Path(self.database_dir)
         self.current_data_type = 0
+        self.received_tracked_data = []
+        self.capturing = False
 
 
     def create_node(self):
@@ -62,17 +64,25 @@ class StaticDatabaseManagerNode(BN.BaseNode):
 
                 with dpg.table_row():
                     dpg.add_text("Etiqueta: ")
-                    dpg.add_input_text(width=360)
+                    dpg.add_input_text(width=360, tag=self.tag+"gesture_label_tag")
 
                 with dpg.table_row():
+                    dpg.add_text("Timer: ")
+                    dpg.add_input_int(width=360, tag=self.tag+"timer_dur_tag")
+                with dpg.table_row():
                     dpg.add_text("No. Snapshots: ")
-                    dpg.add_input_int(width=360)
+                    dpg.add_input_int(width=360, tag=self.tag+"snapshots_take_number")
                 with dpg.table_row():
                     dpg.add_text("ms entre captura: ")
-                    dpg.add_input_int(width=360)
+                    dpg.add_input_int(width=360, tag=self.tag+"snapshots_ms_sep")
+
+            dpg.add_button(label="status", tag=self.tag+"status_node_tag")
+            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
+
             temp_item = dpg.add_button(label="Crear DB", tag=self.tag+"save_db_btn", callback=self.save_database)
-            dpg.bind_item_theme(temp_item, Themer.create_green_btn_theme())
-            temp_item = dpg.add_button(label="Capturar datos")
+            dpg.bind_item_theme(self.tag+"save_db_btn", Themer.create_green_btn_theme())
+
+            temp_item = dpg.add_button(label="Capturar datos", callback=self.save_timed_snapshots)
             dpg.bind_item_theme(temp_item, Themer.create_yellow_btn_theme())
         
         # Grupo para "Cargar modelo"
@@ -85,28 +95,77 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             ),
     def save_database(self):
         if (len(self.connected_input_nodes.items()) < 1):
-            print("No input nodes")
+            #print("No input nodes")
+            dpg.configure_item(self.tag+"status_node_tag", label="No input nodes")
+            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
             return
         self.initialize_csv()
 
     def initialize_csv(self):
-        #print(self.database_dir)
-        #print(dpg.get_value(self.tag+"db_name_file"))
         fixed_file_name = dpg.get_value(self.tag+"db_name_file")
         fixed_file_name = fixed_file_name.replace(" ", "_")
         file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
-        print(file_to_open)
+        if (len(fixed_file_name) < 1):
+            dpg.configure_item(self.tag+"status_node_tag", label="Nombre no valido")
+            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
+            return
         if not (file_to_open.exists()):
             csvfile = (open(file_to_open, 'w', newline=''))
+            dpg.configure_item(self.tag+"status_node_tag", label="Base de datos registrada")
+            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
         else:
             return
         if (self.current_data_type == 0):
             writer = csv.writer(csvfile)
+            writer.writerow(['type: 0'])
             writer.writerow(['gesture_label', 'keypoints_left_hand', 'keypoints_right_hand'])
+
     def load_existing_databases(self):
         csv_dbs = [file.name for file in self.database_open_path.iterdir() if file.suffix == '.csv']
         dpg.configure_item(self.tag+"extra_panel_db_combo", items=csv_dbs)
         #print(csv_dbs)
+
+    def save_timed_snapshots(self):
+        if (self.capturing):
+            return
+        self.capturing = True
+        countdown = int(dpg.get_value(self.tag+"timer_dur_tag"))
+        snapshots_n = int(dpg.get_value(self.tag+"snapshots_take_number"))
+        miliseconds = float(dpg.get_value(self.tag+"snapshots_ms_sep")) / 1000
+        dpg.configure_item(self.tag+"status_node_tag", label="tiempo antes de capturar: " + str(countdown))
+        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
+        while(countdown > 0):
+            time.sleep(1)
+            countdown -=1
+            dpg.configure_item(self.tag+"status_node_tag", label="tiempo antes de capturar: " + str(countdown))
+            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
+
+        while(snapshots_n > 0):
+            self.save_snapshot()
+            snapshots_n -= 1
+            dpg.configure_item(self.tag+"status_node_tag", label="Capturas restantes: " + str(snapshots_n))
+            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
+            time.sleep(miliseconds)
+
+
+        dpg.configure_item(self.tag+"status_node_tag", label="Captura finalizada")
+        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
+        self.capturing = False
+
+
+
+    def save_snapshot(self):
+        self.initialize_csv()
+        fixed_file_name = dpg.get_value(self.tag+"db_name_file")
+        fixed_file_name = fixed_file_name.replace(" ", "_")
+        file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
+
+        if (self.current_data_type == 0):
+            csvfile = (open(file_to_open, 'a', newline=''))
+            writer = csv.writer(csvfile)
+            fixed_gesture_label = dpg.get_value(self.tag+"gesture_label_tag").replace(' ', '_')
+            writer.writerow([fixed_gesture_label, self.received_tracked_data[0], self.received_tracked_data[1]])
+
 
     
     def toggle_sections(self, sender, app_data):
@@ -128,6 +187,7 @@ class StaticDatabaseManagerNode(BN.BaseNode):
         if (len(recovered_data) > 0):
             if (self.current_data_type != recovered_data[0]):
                 self.current_data_type = recovered_data[0]
+        self.received_tracked_data = recovered_data[1]
 
         time.sleep(0.01)
 
