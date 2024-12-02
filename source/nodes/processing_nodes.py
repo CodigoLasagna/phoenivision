@@ -81,6 +81,8 @@ class StaticDatabaseManagerNode(BN.BaseNode):
 
             temp_item = dpg.add_button(label="Crear DB", tag=self.tag+"save_db_btn", callback=self.save_database)
             dpg.bind_item_theme(self.tag+"save_db_btn", Themer.create_green_btn_theme())
+            temp_item = dpg.add_button(label="Cargar Datos", tag=self.tag+"save_db_btn", callback=self.save_database)
+            dpg.bind_item_theme(self.tag+"save_db_btn", Themer.create_green_btn_theme())
 
             temp_item = dpg.add_button(label="Capturar datos", callback=self.save_timed_snapshots)
             dpg.bind_item_theme(temp_item, Themer.create_yellow_btn_theme())
@@ -149,7 +151,7 @@ class StaticDatabaseManagerNode(BN.BaseNode):
 
 
         dpg.configure_item(self.tag+"status_node_tag", label="Captura finalizada")
-        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
+        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
         self.capturing = False
 
 
