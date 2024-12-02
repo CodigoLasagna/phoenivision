@@ -159,10 +159,10 @@ class MultiGraphCapNode(BN.BaseNode):
             dpg.set_axis_limits(self.tag+"_y_axis_scatter", -1, 0)
             x_vals = []
             y_vals = []
-            for i, dataset in enumerate(data):
-                # Filtrar los puntos válidos
+            for group in data:  # Iterar sobre los dos grupos de puntos
+                # Filtrar los puntos válidos en el grupo
                 valid_points = [
-                    point for point in dataset
+                    point for point in group
                     if isinstance(point, (list, tuple)) and len(point) == 3 and
                     not any(p is None or (isinstance(p, float) and np.isnan(p)) for p in point)
                 ]
@@ -174,9 +174,9 @@ class MultiGraphCapNode(BN.BaseNode):
                 # Agregar la serie al gráfico
             if (len(x_vals) > 0):
                 if not (dpg.does_item_exist(self.tag+"_hands_cloud_points")):
-                    dpg.add_scatter_series(parent=self.tag+"_x_axis_scatter", x=x_vals, y=y_vals, label=f"serie {i + 1}", tag=self.tag+"_hands_cloud_points")
+                    dpg.add_scatter_series(parent=self.tag+"_x_axis_scatter", x=x_vals, y=y_vals, tag=self.tag+"_hands_cloud_points")
                 else:
-                    dpg.configure_item(self.tag+"_hands_cloud_points", x=x_vals, y=y_vals, label=f"serie {i + 1}")
+                    dpg.configure_item(self.tag+"_hands_cloud_points", x=x_vals, y=y_vals)
             else:
                 if (dpg.does_item_exist(self.tag+"_hands_cloud_points")):
                     dpg.configure_item(self.tag+"_hands_cloud_points", x=x_vals, y=y_vals)

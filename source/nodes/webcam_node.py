@@ -109,7 +109,7 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
                 # Se detectan ambas manos, agregamos los puntos de ambas
                 keypoints_left = [(lm.x, lm.y, lm.z) for lm in results.multi_hand_landmarks[0].landmark]  # Mano izquierda
                 keypoints_right = [(lm.x, lm.y, lm.z) for lm in results.multi_hand_landmarks[1].landmark]  # Mano derecha
-                keypoints_combined = keypoints_left, keypoints_right
+                keypoints_combined.extend([keypoints_left, keypoints_right])
         
             elif len(results.multi_hand_landmarks) == 1:
                 # Si solo se detecta una mano, la colocamos en el lugar correcto
@@ -117,20 +117,22 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
                 keypoints = [(lm.x, lm.y, lm.z) for lm in hand_landmarks]
                 
                 if "Left" in results.multi_handedness[0].classification[0].label:  # Si es mano izquierda
-                    keypoints_combined = keypoints, [dummy_value] * 21  # Agregamos la mano izquierda
+                    keypoints_combined.extend([keypoints, [dummy_value] * 21])  # Agregamos la mano izquierda
                 else:  # Si es mano derecha
-                    keypoints_combined = [dummy_value] * 21, keypoints  # Agregamos la mano izquierda
+                    keypoints_combined.extend([[dummy_value] * 21, keypoints])  # Agregamos la mano izquierda
 
             for landmarks in results.multi_hand_landmarks:
                 self.mp_drawing.draw_landmarks(frame_rgb, landmarks, self.mp_hands.HAND_CONNECTIONS)
         else:
-            keypoints_combined.extend([dummy_value] * 42)
+            keypoints_combined.extend([[dummy_value] * 21, [dummy_value] * 21])
 
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
 
         self.node_output_data = [0, keypoints_combined]
+        #print("--------")
         #print(keypoints_combined)
+        #print(keypoints_combined[0])
         #print(keypoints_combined)
 
 
