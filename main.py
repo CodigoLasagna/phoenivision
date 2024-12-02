@@ -18,6 +18,7 @@ class MainApp:
         self.current_threads = {}
         self.current_textures_data = {}
         self.nodes_list_menu_items = {}
+        self.nodes_ids = []
         self.window_size = [1920, 1080]
         # Inicializar contexto de dearpygui
         dpg.create_context()
@@ -70,13 +71,13 @@ class MainApp:
                 dpg.add_menu_item(label="Webcam pose i/o node", callback=lambda: self.gen_node(main_nodes.webcam_node.MediapipeInputPoseOutputNode))
                 dpg.add_menu_item(label="Webcam object i/o node", callback=lambda: self.gen_node(main_nodes.webcam_node.MediapipeInputObjectOutputNode))
             with dpg.menu(label="Data Processing"):
-                dpg.add_menu_item(label="DataColectorNode", callback=lambda: self.gen_node(main_nodes.processing_nodes.DataColectorNode))
+                dpg.add_menu_item(label="DataColectorNode", callback=lambda: self.gen_node(main_nodes.processing_nodes.StaticDatabaseManagerNode))
 
         # Crear un handler para detectar clic derecho
         with dpg.handler_registry():
             dpg.add_mouse_click_handler(callback=self.show_right_click_menu, button=-1)
     def gen_node(self, node_class):
-        main_nodes.webcam_node.create_node(node_class, parent="main_node_editor", node_dictionary=self.node_instances)
+        main_nodes.webcam_node.create_node(node_class, parent="main_node_editor", node_dictionary=self.node_instances, nodes_ids=self.nodes_ids)
         #print(self.node_instances)
         for name, node in self.node_instances.items():
             if (node.tag in self.nodes_list_menu_items):

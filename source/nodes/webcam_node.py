@@ -4,10 +4,11 @@ from . import base_node as BN
 #import cv2 as cv
 import mediapipe as mp
 import numpy as np
+import random
 
 class WebcamOutputNode(BN.BaseNode):
-    def __init__(self, parent, tag):
-        super().__init__(parent, tag)
+    def __init__(self, parent, tag, unique_id):
+        super().__init__(parent, tag, unique_id)
         self.create_node()
         mouse_pos = dpg.get_mouse_pos(local=False)
         mouse_pos[0] = mouse_pos[0] - 180
@@ -42,8 +43,8 @@ class WebcamOutputNode(BN.BaseNode):
 
 
 class MediapipeInputHandsOutputNode(BN.BaseNode):
-    def __init__(self, parent, tag):
-        super().__init__(parent, tag)
+    def __init__(self, parent, tag, unique_id):
+        super().__init__(parent, tag, unique_id)
         self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
@@ -94,18 +95,43 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         #process with mediapip
         results = self.hands.process(frame_rgb)
 
-        keypoints_combined = {}
-        if (results.multi_hand_landmarks):
-            for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
-                hand_type = handedness.classification[0].label
-                keypoints = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
-                keypoints_combined[hand_type] = keypoints
-                self.mp_drawing.draw_landmarks(frame_rgb, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+        #keypoints_combined = {}
+        #if (results.multi_hand_landmarks):
+        #    for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
+        #        hand_type = handedness.classification[0].label
+        #        keypoints = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
+        #        keypoints_combined[hand_type] = keypoints
+        #        self.mp_drawing.draw_landmarks(frame_rgb, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+        keypoints_combined = []
+        dummy_value = (float('nan'), float('nan'), float('nan'))
+        if results.multi_hand_landmarks:
+            if len(results.multi_hand_landmarks) == 2:
+                # Se detectan ambas manos, agregamos los puntos de ambas
+                keypoints_left = [(lm.x, lm.y, lm.z) for lm in results.multi_hand_landmarks[0].landmark]  # Mano izquierda
+                keypoints_right = [(lm.x, lm.y, lm.z) for lm in results.multi_hand_landmarks[1].landmark]  # Mano derecha
+                keypoints_combined = keypoints_left, keypoints_right
+        
+            elif len(results.multi_hand_landmarks) == 1:
+                # Si solo se detecta una mano, la colocamos en el lugar correcto
+                hand_landmarks = results.multi_hand_landmarks[0].landmark
+                keypoints = [(lm.x, lm.y, lm.z) for lm in hand_landmarks]
+                
+                if "Left" in results.multi_handedness[0].classification[0].label:  # Si es mano izquierda
+                    keypoints_combined = keypoints, [dummy_value] * 21  # Agregamos la mano izquierda
+                else:  # Si es mano derecha
+                    keypoints_combined = [dummy_value] * 21, keypoints  # Agregamos la mano izquierda
+
+            for landmarks in results.multi_hand_landmarks:
+                self.mp_drawing.draw_landmarks(frame_rgb, landmarks, self.mp_hands.HAND_CONNECTIONS)
+        else:
+            keypoints_combined.extend([dummy_value] * 42)
 
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
 
-        #self.node_output_data = keypoints_combined
+        self.node_output_data = [0, keypoints_combined]
+        #print(keypoints_combined)
+        #print(keypoints_combined)
 
 
         return processed_texture_data
@@ -124,8 +150,8 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         self.update_loop = False
 
 class MediapipeInputFaceOutputNode(BN.BaseNode):
-    def __init__(self, parent, tag):
-        super().__init__(parent, tag)
+    def __init__(self, parent, tag, unique_id):
+        super().__init__(parent, tag, unique_id)
         self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
@@ -189,8 +215,8 @@ class MediapipeInputFaceOutputNode(BN.BaseNode):
         self.update_loop = False
 
 class MediapipeInputPoseOutputNode(BN.BaseNode):
-    def __init__(self, parent, tag):
-        super().__init__(parent, tag)
+    def __init__(self, parent, tag, unique_id):
+        super().__init__(parent, tag, unique_id)
         self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
@@ -253,8 +279,8 @@ class MediapipeInputPoseOutputNode(BN.BaseNode):
         self.update_loop = False
 
 class MediapipeInputFaceBOutputNode(BN.BaseNode):
-    def __init__(self, parent, tag):
-        super().__init__(parent, tag)
+    def __init__(self, parent, tag, unique_id):
+        super().__init__(parent, tag, unique_id)
         self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
@@ -318,8 +344,8 @@ class MediapipeInputFaceBOutputNode(BN.BaseNode):
         self.update_loop = False
 
 class MediapipeInputObjectOutputNode(BN.BaseNode):
-    def __init__(self, parent, tag):
-        super().__init__(parent, tag)
+    def __init__(self, parent, tag, unique_id):
+        super().__init__(parent, tag, unique_id)
         self.node_type = BN.NodeType.PATTER_REC_NODE
         self.initial_texture_data = [0, 0, 0, 255] * (320 * 240)
         with dpg.texture_registry():
@@ -386,11 +412,15 @@ class MediapipeInputObjectOutputNode(BN.BaseNode):
         self.update_loop = False
 
 
-def create_node(node_class, parent, node_dictionary):
+def create_node(node_class, parent, node_dictionary, nodes_ids):
     tag = str(node_class.__name__)
     if (tag in node_dictionary):
         print("already exists")
         return
+    node_new_id = len(node_dictionary.items())
+    while(node_new_id in nodes_ids):
+        node_new_id = len(node_dictionary.items()) + (random.random() % 100)
 
-    node_dictionary[tag] = node_class(parent=parent, tag=tag)
-    #print(node_dictionary[tag])
+    new_node = node_class(parent=parent, tag=tag, unique_id=node_new_id)
+    node_dictionary[new_node.tag] = new_node
+    node_dictionary[new_node.tag].node_unique_id = node_new_id

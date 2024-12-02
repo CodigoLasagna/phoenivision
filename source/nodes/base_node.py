@@ -9,7 +9,7 @@ class NodeType(Enum):
     DATA_PROC_NODE = 2
 
 class BaseNode:
-    def __init__(self, parent, tag):
+    def __init__(self, parent, tag, unique_id):
         self.parent = parent
         self.connected_input_nodes = {}
         self.connected_output_nodes = {}
@@ -22,6 +22,7 @@ class BaseNode:
         self.node_output_data = None
         self.node_type = 0
         self.children_tags = []
+        self.node_unique_id = unique_id
 
     def create_node(self):
         """Método que debe ser implementado en las subclases"""
