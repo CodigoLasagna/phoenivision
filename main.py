@@ -203,7 +203,7 @@ class MainApp:
         dpg.delete_item(app_data)
         cur_thread = self.current_threads.get(app_data)
         link_data = self.links_instances.get(app_data)
-        print(len(link_data[0][0].connected_output_nodes))
+        #print(len(link_data[0][0].connected_output_nodes))
         if (len(link_data[0][0].connected_output_nodes) <= 1):
             #print("stoped_thread")
             cur_thread[1].set()
@@ -233,5 +233,5 @@ class MainApp:
 if __name__ == "__main__":
     app = MainApp()
     app.run()
-    for cur_thread in app.current_threads:
-        print(cur_thread)
+    #for cur_thread in app.current_threads:
+    #    print(cur_thread)

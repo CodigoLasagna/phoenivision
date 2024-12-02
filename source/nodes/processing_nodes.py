@@ -6,6 +6,7 @@ from ..theming.base_theme_confs import Themer
 #import cv2 as cv
 import numpy as np
 import time
+import csv
 from pathlib import Path
 
 class StaticDatabaseManagerNode(BN.BaseNode):
@@ -20,7 +21,8 @@ class StaticDatabaseManagerNode(BN.BaseNode):
         dpg.set_item_pos(self.tag, mouse_pos)
         self.children_tags.append(self.tag+"_in_tag")
         self.children_tags.append(self.tag+"_out_tag")
-        self.database_dir = Path("./app_data/databases")
+        self.database_dir = "./app_data/databases"
+        self.database_open_path = Path(self.database_dir)
         self.current_data_type = 0
 
 
@@ -56,16 +58,22 @@ class StaticDatabaseManagerNode(BN.BaseNode):
 
                 with dpg.table_row():
                     dpg.add_text("DB Nombre: ")
-                    dpg.add_input_text(width=300)
+                    dpg.add_input_text(width=360, tag=self.tag+"db_name_file")
 
                 with dpg.table_row():
                     dpg.add_text("Etiqueta: ")
-                    dpg.add_input_text(width=300)
+                    dpg.add_input_text(width=360)
 
                 with dpg.table_row():
                     dpg.add_text("No. Snapshots: ")
-                    dpg.add_input_int(width=300)
+                    dpg.add_input_int(width=360)
+                with dpg.table_row():
+                    dpg.add_text("ms entre captura: ")
+                    dpg.add_input_int(width=360)
+            temp_item = dpg.add_button(label="Crear DB", tag=self.tag+"save_db_btn", callback=self.save_database)
+            dpg.bind_item_theme(temp_item, Themer.create_green_btn_theme())
             temp_item = dpg.add_button(label="Capturar datos")
+            dpg.bind_item_theme(temp_item, Themer.create_yellow_btn_theme())
         
         # Grupo para "Cargar modelo"
         with dpg.group(parent=self.tag + "extra_panel", tag=self.tag + "extra_panel_radio_load_model", show=False):
@@ -75,9 +83,28 @@ class StaticDatabaseManagerNode(BN.BaseNode):
                 callback=lambda sender: print(dpg.get_value(sender)),
                 tag=self.tag+"extra_panel_db_combo"
             ),
-        dpg.bind_item_theme(temp_item, Themer.create_green_btn_theme())
+    def save_database(self):
+        if (len(self.connected_input_nodes.items()) < 1):
+            print("No input nodes")
+            return
+        self.initialize_csv()
+
+    def initialize_csv(self):
+        #print(self.database_dir)
+        #print(dpg.get_value(self.tag+"db_name_file"))
+        fixed_file_name = dpg.get_value(self.tag+"db_name_file")
+        fixed_file_name = fixed_file_name.replace(" ", "_")
+        file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
+        print(file_to_open)
+        if not (file_to_open.exists()):
+            csvfile = (open(file_to_open, 'w', newline=''))
+        else:
+            return
+        if (self.current_data_type == 0):
+            writer = csv.writer(csvfile)
+            writer.writerow(['gesture_label', 'keypoints_left_hand', 'keypoints_right_hand'])
     def load_existing_databases(self):
-        csv_dbs = [file.name for file in self.database_dir.iterdir() if file.suffix == '.csv']
+        csv_dbs = [file.name for file in self.database_open_path.iterdir() if file.suffix == '.csv']
         dpg.configure_item(self.tag+"extra_panel_db_combo", items=csv_dbs)
         #print(csv_dbs)
 
@@ -96,6 +123,8 @@ class StaticDatabaseManagerNode(BN.BaseNode):
         recovered_data = []
         if (len(self.connected_input_nodes.values()) > 0):
             recovered_data = list(self.connected_input_nodes.values())[0].node_output_data
+        if (recovered_data == None):
+            return
         if (len(recovered_data) > 0):
             if (self.current_data_type != recovered_data[0]):
                 self.current_data_type = recovered_data[0]

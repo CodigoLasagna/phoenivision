@@ -52,7 +52,7 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         self.create_node()
         #prepare mediapipe configs
         self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.7)
+        self.hands = self.mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.8, min_tracking_confidence=0.8)
         self.mp_drawing = mp.solutions.drawing_utils
         mouse_pos = dpg.get_mouse_pos(local=False)
         mouse_pos[0] = mouse_pos[0] - 180
