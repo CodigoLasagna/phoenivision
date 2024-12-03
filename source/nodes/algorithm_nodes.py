@@ -9,7 +9,20 @@ import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
+
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
+#from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+#from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+#from sklearn.linear_model import Perceptron
+#from sklearn.linear_model import RidgeClassifier
+#from sklearn.linear_model import PassiveAggressiveClassifier
+#from sklearn.linear_model import LogisticRegression
+
 #from sklearn.metrics import accuracy_score
 #from sklearn.metrics import confusion_matrix
 #from sklearn.metrics import classification_report
@@ -84,11 +97,21 @@ class StaticModelMaker(BN.BaseNode):
             callback=self.toggle_sections,
             tag=self.tag + "data_col_radio"
         )
-        dpg.add_radio_button(
+        dpg.add_combo(
             parent=self.tag + "extra_panel",
+            default_value="Model type",
             #items=["KNeighbors", "SVC", "Kmeans"],
-            items=["KNeighbors", "SVC", "DecisionTree"],
-            horizontal=True,
+            items=[
+                "KNeighbors",
+                "SVC",
+                "DecisionTree",
+                "RandomForest",
+                "MLPClassifier",
+                "GradientBoosting",
+                "AdaBoost",
+                "GNB", # Gaussian Naive Bayes
+            ],
+            #horizontal=True,
             callback=lambda sender: self.load_specific_model_list(dpg.get_value(sender)),
             tag=self.tag + "model_list_radio_selector"
         )
@@ -151,6 +174,16 @@ class StaticModelMaker(BN.BaseNode):
             self.model_to_train = 1
         if (sender == "DecisionTree"):
             self.model_to_train = 2
+        if (sender == "RandomForest"):
+            self.model_to_train = 3
+        if (sender == "MLPClassifier"):
+            self.model_to_train = 4
+        if (sender == "GradientBoosting"):
+            self.model_to_train = 5
+        if (sender == "AdaBoost"):
+            self.model_to_train = 6
+        if (sender == "GNB"):
+            self.model_to_train = 7
 
     def train_model(self):
         model_name_file = dpg.get_value(self.tag + "model_name_file")
@@ -176,8 +209,35 @@ class StaticModelMaker(BN.BaseNode):
             training_model = SVC(C=1, kernel='rbf', gamma='scale', probability=True)
 
         if (self.model_to_train == 2):
-            #training_model = DecisionTreeClassifier(random_state=42, max_depth=5, min_samples_split=10, min_samples_leaf=10, max_features="sqrt", ccp_alpha=0.01)
             training_model = DecisionTreeClassifier(random_state=42)
+
+        if (self.model_to_train == 3):
+            training_model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+        if (self.model_to_train == 4):
+            training_model = MLPClassifier(
+                hidden_layer_sizes=(100, ),
+                activation='relu',
+                solver='adam',
+                learning_rate='constant',
+                max_iter=200,
+                random_state=42
+            )
+        if (self.model_to_train == 5):
+            training_model = GradientBoostingClassifier(
+                n_estimators=100,
+                learning_rate=0.1,
+                max_depth=3,
+                random_state=42
+            )
+        if (self.model_to_train == 6):
+            training_model = AdaBoostClassifier(
+                n_estimators=50,
+                learning_rate=1.0,
+                random_state=42
+            )
+        if (self.model_to_train == 7):
+            training_model = GaussianNB()
 
         training_model.fit(self.x_train, self.y_train)
     
