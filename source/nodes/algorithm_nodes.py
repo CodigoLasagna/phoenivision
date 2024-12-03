@@ -111,6 +111,9 @@ class StaticModelMaker(BN.BaseNode):
             dpg.add_button(parent=self.tag + "extra_panel", label="status", tag=self.tag+"status_node_tag")
             dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
 
+            dpg.add_button(parent=self.tag + "extra_panel", label="prediction", tag=self.tag+"pred_tag")
+            dpg.bind_item_theme(self.tag+"pred_tag", Themer.create_contour_color_text([155, 171, 178]))
+
             dpg.add_button(parent=self.tag + "extra_panel", label="Entrenar Modelo", tag=self.tag+"save_db_btn", callback=self.train_model)
             dpg.bind_item_theme(self.tag+"save_db_btn", Themer.create_green_btn_theme())
 
@@ -199,6 +202,7 @@ class StaticModelMaker(BN.BaseNode):
 
     def predict_data(self):
         if (self.loaded_model == None):
+            time.sleep(0.01)
             return
         #print(self.received_tracked_data)
         prepared_data = {}
@@ -223,6 +227,12 @@ class StaticModelMaker(BN.BaseNode):
             x_data = x_data.reshape(1, -1)
 
             y_pred = self.loaded_model.predict(x_data)
+            dpg.configure_item(self.tag + "pred_tag", label=y_pred[0])
+        else:
+            dpg.configure_item(self.tag + "pred_tag", label='None')
+            time.sleep(0.01)
+
+
             #print(f"Predicted: {y_pred}")
     
     def flatten_features(self, features):
