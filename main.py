@@ -73,6 +73,8 @@ class MainApp:
             with dpg.menu(label="Data Processing"):
                 dpg.add_menu_item(label="DataColectorNode", callback=lambda: self.gen_node(main_nodes.processing_nodes.StaticDatabaseManagerNode))
                 dpg.add_menu_item(label="MultiGraphCapNode", callback=lambda: self.gen_node(main_nodes.processing_nodes.MultiGraphCapNode))
+            with dpg.menu(label="Modeling"):
+                dpg.add_menu_item(label="StaticModelMaker", callback=lambda: self.gen_node(main_nodes.algorithm_nodes.StaticModelMaker))
 
         # Crear un handler para detectar clic derecho
         with dpg.handler_registry():
@@ -161,7 +163,10 @@ class MainApp:
             (enums.WEBCAM_BASE_NODE, enums.PATTER_REC_NODE),
             (enums.PATTER_REC_NODE, enums.WEBCAM_BASE_NODE),
             (enums.PATTER_REC_NODE, enums.DATA_PROC_NODE),
-            (enums.DATA_PROC_NODE, enums.PATTER_REC_NODE)
+            (enums.DATA_PROC_NODE, enums.PATTER_REC_NODE),
+            (enums.DATA_PROC_NODE, enums.MODEL_LAYER_NODE),
+            (enums.MODEL_LAYER_NODE, enums.DATA_PROC_NODE),
+            (enums.PATTER_REC_NODE, enums.MODEL_LAYER_NODE),
         ]
         return  (node_a.node_type, node_b.node_type) in valid_combinations
     

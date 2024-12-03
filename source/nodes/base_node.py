@@ -7,6 +7,7 @@ class NodeType(Enum):
     WEBCAM_BASE_NODE = 0
     PATTER_REC_NODE = 1
     DATA_PROC_NODE = 2
+    MODEL_LAYER_NODE = 3
 
 class BaseNode:
     def __init__(self, parent, tag, unique_id):
