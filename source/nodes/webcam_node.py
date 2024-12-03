@@ -201,13 +201,18 @@ class MediapipeInputFaceOutputNode(BN.BaseNode):
         #process with mediapip
         results = self.face_mesh.process(frame_rgb)
 
+
+        save_keypoints = []
         if (results.multi_face_landmarks):
             for face_landmarks in results.multi_face_landmarks:
                 self.mp_drawing.draw_landmarks(frame_rgb, face_landmarks, self.mp_face_mesh.FACEMESH_TESSELATION)
+                save_keypoints.append([(lm.x, lm.y, lm.z) for lm in face_landmarks.landmark])
 
+        #print(save_keypoints)
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
 
+        self.node_output_data = [1, save_keypoints]
 
         return processed_texture_data
 
