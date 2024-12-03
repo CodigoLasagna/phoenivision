@@ -46,6 +46,10 @@ class StaticModelMaker(BN.BaseNode):
         self.capturing = False
         self.loaded_model = None
         self.current_features_labels = []
+        self.x_train = None
+        self.x_test = None
+        self.y_train = None
+        self.y_test = None
 
 
     def create_node(self):
@@ -131,33 +135,34 @@ class StaticModelMaker(BN.BaseNode):
             dpg.bind_item_theme(self.tag + "status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
             return
     
-        db_csv = pd.read_csv(self.received_db_info_data, skiprows=1)
-        target_column = "tag"
-        feature_labels = [col for col in db_csv.columns if col != target_column]
-        self.current_features_labels = feature_labels
-        distinct_values = db_csv['tag'].unique()
+        #db_csv = pd.read_csv(self.received_db_info_data, skiprows=1)
+        #target_column = "tag"
+        #feature_labels = [col for col in db_csv.columns if col != target_column]
+        #self.current_features_labels = feature_labels
+        #distinct_values = db_csv['tag'].unique()
     
-        for f_label in feature_labels:
-            db_csv[f_label] = db_csv[f_label].apply(literal_eval)
+        #for f_label in feature_labels:
+        #    db_csv[f_label] = db_csv[f_label].apply(literal_eval)
     
-        db_csv['features'] = db_csv.apply(
-            lambda row: {key.upper(): row[key] for key in feature_labels}, axis=1
-        )
-        db_csv['features'] = db_csv['features'].apply(self.flatten_features)
+        #db_csv['features'] = db_csv.apply(
+        #    lambda row: {key.upper(): row[key] for key in feature_labels}, axis=1
+        #)
+        #db_csv['features'] = db_csv['features'].apply(self.flatten_features)
     
-        # Asegurar que todas las características tengan la misma longitud
-        max_length = max(len(features) for features in db_csv['features'])
-        db_csv['features'] = db_csv['features'].apply(
-            lambda features: features + [0] * (max_length - len(features))
-        )
+        ## Asegurar que todas las características tengan la misma longitud
+        #max_length = max(len(features) for features in db_csv['features'])
+        #db_csv['features'] = db_csv['features'].apply(
+        #    lambda features: features + [0] * (max_length - len(features))
+        #)
     
-        x_val = np.array(db_csv['features'].to_list())
-        y_val = db_csv['tag'].to_list()
+        #x_val = np.array(db_csv['features'].to_list())
+        #y_val = db_csv['tag'].to_list()
     
-        x_train, x_test, y_train, y_test = train_test_split(x_val, y_val, test_size=0.3, random_state=42)
+        #x_train, x_test, y_train, y_test = train_test_split(x_val, y_val, test_size=0.3, random_state=42)
+        self.x_train, self.x_test, self.y_train, self.y_test = self.obtain_test_variables_from_db(self.received_db_info_data)
     
         knn_model = KNeighborsClassifier(n_neighbors=13, weights='distance')
-        knn_model.fit(x_train, y_train)
+        knn_model.fit(self.x_train, self.y_train)
         #print(db_csv['features'])
     
         #y_pred = knn_model.predict(x_test)
@@ -183,6 +188,31 @@ class StaticModelMaker(BN.BaseNode):
         dpg.configure_item(self.tag+"status_node_tag", label="Modelo: ["+model_name_file+".pkl] guardado con exito.")
         dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
 
+    def obtain_test_variables_from_db(self, db_dir):
+        db_csv = pd.read_csv(db_dir, skiprows=1)
+        target_column = "tag"
+        feature_labels = [col for col in db_csv.columns if col != target_column]
+        self.current_features_labels = feature_labels
+    
+        for f_label in feature_labels:
+            db_csv[f_label] = db_csv[f_label].apply(literal_eval)
+    
+        db_csv['features'] = db_csv.apply(
+            lambda row: {key.upper(): row[key] for key in feature_labels}, axis=1
+        )
+        db_csv['features'] = db_csv['features'].apply(self.flatten_features)
+    
+        # Asegurar que todas las características tengan la misma longitud
+        max_length = max(len(features) for features in db_csv['features'])
+        db_csv['features'] = db_csv['features'].apply(
+            lambda features: features + [0] * (max_length - len(features))
+        )
+    
+        x_val = np.array(db_csv['features'].to_list())
+        y_val = db_csv['tag'].to_list()
+    
+        return train_test_split(x_val, y_val, test_size=0.3, random_state=42)
+
     def load_model_list(self, sender):
         dpg.set_value(self.tag + "model_name_file", sender.replace('.pkl', ''))
         self.load_model()
@@ -193,6 +223,8 @@ class StaticModelMaker(BN.BaseNode):
         target_column = "tag"
         feature_labels = [col for col in db_csv.columns if col != target_column]
         self.current_features_labels = feature_labels
+
+        self.x_train, self.x_test, self.y_train, self.y_test = self.obtain_test_variables_from_db(db_file_dir)
 
 
     def load_model(self):
@@ -227,7 +259,13 @@ class StaticModelMaker(BN.BaseNode):
             x_data = x_data.reshape(1, -1)
 
             y_pred = self.loaded_model.predict(x_data)
-            dpg.configure_item(self.tag + "pred_tag", label=y_pred[0])
+            probabilities = self.loaded_model.predict_proba(x_data)
+            max_prob = max(probabilities[0])
+            dpg.configure_item(self.tag + "pred_tag", label=y_pred[0]+f"({max_prob * 100:.2f}%)")
+            #max(probabilities[0])
+            #accuracy = 1 if (y_pred[0])
+            #accuracy = accuracy_score(self.y_test, y_pred)
+            #print()
         else:
             dpg.configure_item(self.tag + "pred_tag", label='None')
             time.sleep(0.01)
@@ -297,48 +335,6 @@ class StaticModelMaker(BN.BaseNode):
             writer = csv.writer(csvfile)
             writer.writerow([self.current_data_type])
             writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
-
-    def load_data_from_db(self):
-        pass
-        #fixed_file_name = ""
-        #if (loader_part == 0):
-        #    fixed_file_name = dpg.get_value(self.tag+"db_name_file")
-        #elif(loader_part == 1):
-        #    fixed_file_name = csv_name.replace(".csv", '')
-        #    dpg.set_value(self.tag+"db_name_file", fixed_file_name)
-        #fixed_file_name = fixed_file_name.replace(" ", "_")
-        #file_to_open = Path(self.models_dir+"/"+fixed_file_name+".csv")
-        #if (len(fixed_file_name) < 1):
-        #    if (show_flag_messages):
-        #        dpg.configure_item(self.tag+"status_node_tag", label="Nombre no valido")
-        #        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
-        #    return
-        #if not (file_to_open.exists()):
-        #    if (show_flag_messages):
-        #        dpg.configure_item(self.tag+"status_node_tag", label="DB no encontrado")
-        #        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
-        #    return
-        #self.path_to_pass = self.models_dir+"/"+fixed_file_name+".csv"
-        #db = open(file_to_open, 'r')
-        #db_data_type = next(db)
-        #reader = csv.DictReader(db)
-        #values = list()
-        ##db_data_type = 
-        #if (db_data_type):
-        #    pass
-        #    #print("db datatype: " + str(db_data_type))
-        #for row in reader:
-        #    if not (row['tag'] in values):
-        #        values.append(row['tag'])
-        #if (show_flag_messages):
-        #    dpg.configure_item(self.tag+"status_node_tag", label="Datos cargados")
-        #    dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
-        ##children = dpg.get_item_children(self.tag+"tags_list")
-        ##print(children)
-        #dpg.delete_item(self.tag+"_tags_list", children_only=True)
-        #for val in values:
-        #    dpg.add_text(parent=self.tag+"_tags_list", default_value=val)
-        #dpg.configure_item(self.tag+"tags_table_header", label="Tags: ("+str(len(values))+")")
 
     def load_existing_models(self):
         pkl_models = [file.name for file in self.models_open_path.iterdir() if file.suffix == '.pkl']
