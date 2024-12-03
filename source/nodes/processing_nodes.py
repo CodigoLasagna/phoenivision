@@ -100,8 +100,8 @@ class StaticDatabaseManagerNode(BN.BaseNode):
         with dpg.group(parent=self.tag + "extra_panel", tag=self.tag + "extra_panel_radio_load_model", show=False):
             dpg.add_combo(
                 default_value="Cargar DB",
-                items=["Eliminar"],
-                callback=lambda sender: print(dpg.get_value(sender)),
+                #items=["Eliminar"],
+                callback=lambda sender: self.load_data_from_db(loader_part=1, csv_name=dpg.get_value(sender)),
                 tag=self.tag+"extra_panel_db_combo"
             ),
     def save_database(self):
@@ -131,8 +131,12 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             writer.writerow([self.current_data_type])
             writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
 
-    def load_data_from_db(self, show_flag_messages=True):
-        fixed_file_name = dpg.get_value(self.tag+"db_name_file")
+    def load_data_from_db(self, show_flag_messages=True, loader_part=0, csv_name=""):
+        if (loader_part == 0):
+            fixed_file_name = dpg.get_value(self.tag+"db_name_file")
+        else:
+            fixed_file_name = csv_name.replace(".csv", '')
+            dpg.set_value(self.tag+"db_name_file", fixed_file_name)
         fixed_file_name = fixed_file_name.replace(" ", "_")
         file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
         if (len(fixed_file_name) < 1):
