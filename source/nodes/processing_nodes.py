@@ -22,6 +22,7 @@ class StaticDatabaseManagerNode(BN.BaseNode):
         self.children_tags.append(self.tag+"_in_tag")
         self.children_tags.append(self.tag+"_out_tag")
         self.database_dir = "./app_data/databases"
+        self.path_to_pass = ""
         self.database_open_path = Path(self.database_dir)
         self.current_data_type = 0
         self.received_tracked_data = []
@@ -93,7 +94,7 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             temp_item = dpg.add_button(label="Capturar datos", callback=self.save_timed_snapshots)
             dpg.bind_item_theme(temp_item, Themer.create_yellow_btn_theme())
 
-            temp_item = dpg.add_button(label="Cargar Datos", tag=self.tag+"load_data", callback=self.load_data_from_db)
+            temp_item = dpg.add_button(label="Cargar Datos", tag=self.tag+"load_data", callback=lambda: self.load_data_from_db(loader_part=0))
             dpg.bind_item_theme(self.tag+"load_data", Themer.create_blue_btn_theme())
         
         # Grupo para "Cargar modelo"
@@ -132,9 +133,10 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
 
     def load_data_from_db(self, show_flag_messages=True, loader_part=0, csv_name=""):
+        fixed_file_name = ""
         if (loader_part == 0):
             fixed_file_name = dpg.get_value(self.tag+"db_name_file")
-        else:
+        elif(loader_part == 1):
             fixed_file_name = csv_name.replace(".csv", '')
             dpg.set_value(self.tag+"db_name_file", fixed_file_name)
         fixed_file_name = fixed_file_name.replace(" ", "_")
@@ -149,6 +151,7 @@ class StaticDatabaseManagerNode(BN.BaseNode):
                 dpg.configure_item(self.tag+"status_node_tag", label="DB no encontrado")
                 dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
             return
+        self.path_to_pass = self.database_dir+"/"+fixed_file_name+".csv"
         db = open(file_to_open, 'r')
         db_data_type = next(db)
         reader = csv.DictReader(db)
