@@ -236,6 +236,7 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             if (self.current_data_type != recovered_data[0]):
                 self.current_data_type = recovered_data[0]
         self.received_tracked_data = recovered_data[1]
+        self.node_output_data = self.path_to_pass
 
         time.sleep(0.01)
 
@@ -247,8 +248,9 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             pass
             if not(self.lock):
                 break
-            for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
-                node_instance.update_input_atts()
+            #for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
+            #    node_instance.update_input_atts()
+            time.sleep(0.01)
         self.update_loop = False
 
 class MultiGraphCapNode(BN.BaseNode):

@@ -21,11 +21,12 @@ class StaticModelMaker(BN.BaseNode):
         self.children_tags.append(self.tag+"_in_tag_db")
         self.children_tags.append(self.tag+"_in_tag_img")
         self.children_tags.append(self.tag+"_out_tag")
-        self.database_dir = "./app_data/models/"
+        self.models_dir = "./app_data/models/"
         self.path_to_pass = ""
-        self.database_open_path = Path(self.database_dir)
+        self.database_open_path = Path(self.models_dir)
         self.current_data_type = 0
         self.received_tracked_data = []
+        self.received_db_info_data = []
         self.capturing = False
 
 
@@ -118,7 +119,7 @@ class StaticModelMaker(BN.BaseNode):
     def initialize_csv(self):
         fixed_file_name = dpg.get_value(self.tag+"db_name_file")
         fixed_file_name = fixed_file_name.replace(" ", "_")
-        file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
+        file_to_open = Path(self.models_dir+"/"+fixed_file_name+".csv")
         if (len(fixed_file_name) < 1):
             dpg.configure_item(self.tag+"status_node_tag", label="Nombre no valido")
             dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
@@ -142,7 +143,7 @@ class StaticModelMaker(BN.BaseNode):
             fixed_file_name = csv_name.replace(".csv", '')
             dpg.set_value(self.tag+"db_name_file", fixed_file_name)
         fixed_file_name = fixed_file_name.replace(" ", "_")
-        file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
+        file_to_open = Path(self.models_dir+"/"+fixed_file_name+".csv")
         if (len(fixed_file_name) < 1):
             if (show_flag_messages):
                 dpg.configure_item(self.tag+"status_node_tag", label="Nombre no valido")
@@ -153,7 +154,7 @@ class StaticModelMaker(BN.BaseNode):
                 dpg.configure_item(self.tag+"status_node_tag", label="DB no encontrado")
                 dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
             return
-        self.path_to_pass = self.database_dir+"/"+fixed_file_name+".csv"
+        self.path_to_pass = self.models_dir+"/"+fixed_file_name+".csv"
         db = open(file_to_open, 'r')
         db_data_type = next(db)
         reader = csv.DictReader(db)
@@ -210,7 +211,7 @@ class StaticModelMaker(BN.BaseNode):
         self.initialize_csv()
         fixed_file_name = dpg.get_value(self.tag+"db_name_file")
         fixed_file_name = fixed_file_name.replace(" ", "_")
-        file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
+        file_to_open = Path(self.models_dir+"/"+fixed_file_name+".csv")
 
         if (self.current_data_type == 0):
             csvfile = (open(file_to_open, 'a', newline=''))
@@ -229,26 +230,55 @@ class StaticModelMaker(BN.BaseNode):
 
 
     def update_input_atts(self):
-        #recovered_data = []
-        #if (len(self.connected_input_nodes.values()) > 0):
-        #    recovered_data = list(self.connected_input_nodes.values())[0].node_output_data
-        #if (recovered_data == None):
-        #    return
-        #if (len(recovered_data) > 0):
-        #    if (self.current_data_type != recovered_data[0]):
-        #        self.current_data_type = recovered_data[0]
-        #self.received_tracked_data = recovered_data[1]
-        print("working")
+        track_recovered_data = []
+        db_info_recovered_data = ""
+        all_inputs = False
+        if (len(self.connected_input_nodes.values()) > 0):
+            check_node = list(self.connected_input_nodes.values())[0]
+            if (check_node.node_type == BN.NodeType.DATA_PROC_NODE):
+                db_info_recovered_data = check_node.node_output_data
+            if (check_node.node_type == BN.NodeType.PATTER_REC_NODE):
+                track_recovered_data = check_node.node_output_data
+                #print(track_recovered_data)
+            #track_recovered_data = check_node
+            #print(check_node.node_output_data)
+        if (len(self.connected_input_nodes.values()) > 1):
+            check_node = list(self.connected_input_nodes.values())[1]
+            if (check_node.node_type == BN.NodeType.DATA_PROC_NODE):
+                db_info_recovered_data = check_node.node_output_data
+            if (check_node.node_type == BN.NodeType.PATTER_REC_NODE):
+                track_recovered_data = check_node.node_output_data
+            all_inputs = True
+        if (all_inputs == False):
+            time.sleep(0.1)
+            return
+        if (track_recovered_data == None):
+            time.sleep(0.1)
+            return
+        if (db_info_recovered_data == None):
+            time.sleep(0.1)
+            return
+        if (len(db_info_recovered_data) < 1):
+            time.sleep(0.1)
+            return
+        if (len(track_recovered_data) > 0):
+            if (self.current_data_type != track_recovered_data[0]):
+                self.current_data_type = track_recovered_data[0]
+        #print(track_recovered_data)
+        self.received_tracked_data = track_recovered_data[1]
+        if (self.received_db_info_data != db_info_recovered_data):
+            self.received_db_info_data = db_info_recovered_data
+            print("db_change")
+        #print(self.received_db_info_data)
+        #print(self.received_tracked_data)
 
-        time.sleep(0.1)
 
     def update_output_atts(self, stop_thread):
         if (self.update_loop == True):
             return
         self.update_loop = True
         while not(stop_thread.is_set()):
-            pass
             if not(self.lock):
                 break
-            print("hi")
+            #print("hi")
         self.update_loop = False

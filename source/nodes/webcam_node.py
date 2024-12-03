@@ -38,6 +38,7 @@ class WebcamOutputNode(BN.BaseNode):
             #dpg.set_item_user_data("won_tag", dpg.get_item_user_data("webcam_texture"))
             for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
                 node_instance.update_input_atts()
+                #print('webcam')
             #print("node_a")
         self.update_loop = False
 
@@ -145,11 +146,12 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
             return
         self.update_loop = True
         while not(stop_thread.is_set()):
-            pass
+            #pass
             if not(self.lock):
                 break
             for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
                 node_instance.update_input_atts()
+                #print('hands')
         self.update_loop = False
 
 class MediapipeInputFaceOutputNode(BN.BaseNode):

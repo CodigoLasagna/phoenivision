@@ -150,6 +150,7 @@ class MainApp:
         stop_event = threading.Event()
         self.current_threads[link] = [threading.Thread(target=node_a_instance.update_output_atts, args=(stop_event,)), stop_event]
         self.current_threads.get(link)[0].start()
+        #print(self.current_threads[link])
         #threading.Thread(target=node_a_instance.update_output_atts).start()
 
 
