@@ -343,13 +343,21 @@ class MediapipeInputFaceBOutputNode(BN.BaseNode):
         #process with mediapip
         results = self.face_det.process(frame_rgb)
 
+
+        save_keypoints = []
         if (results.detections):
             for detection in results.detections:
                 self.mp_drawing.draw_detection(frame_rgb, detection)
+                keypoints = [
+                    (keypoint.x, keypoint.y, 0)  # z = 0 por defecto
+                    for keypoint in detection.location_data.relative_keypoints
+                ]
+                save_keypoints.append(keypoints)
 
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
 
+        self.node_output_data = [1, save_keypoints]
 
         return processed_texture_data
 
