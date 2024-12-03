@@ -239,9 +239,6 @@ class StaticModelMaker(BN.BaseNode):
                 db_info_recovered_data = check_node.node_output_data
             if (check_node.node_type == BN.NodeType.PATTER_REC_NODE):
                 track_recovered_data = check_node.node_output_data
-                #print(track_recovered_data)
-            #track_recovered_data = check_node
-            #print(check_node.node_output_data)
         if (len(self.connected_input_nodes.values()) > 1):
             check_node = list(self.connected_input_nodes.values())[1]
             if (check_node.node_type == BN.NodeType.DATA_PROC_NODE):
@@ -249,6 +246,7 @@ class StaticModelMaker(BN.BaseNode):
             if (check_node.node_type == BN.NodeType.PATTER_REC_NODE):
                 track_recovered_data = check_node.node_output_data
             all_inputs = True
+
         if (all_inputs == False):
             time.sleep(0.1)
             return
@@ -264,13 +262,10 @@ class StaticModelMaker(BN.BaseNode):
         if (len(track_recovered_data) > 0):
             if (self.current_data_type != track_recovered_data[0]):
                 self.current_data_type = track_recovered_data[0]
-        #print(track_recovered_data)
-        self.received_tracked_data = track_recovered_data[1]
-        if (self.received_db_info_data != db_info_recovered_data):
+
+        self.received_tracked_data = track_recovered_data[1] # realtime data from recon node
+        if (self.received_db_info_data != db_info_recovered_data): # update on chage from db
             self.received_db_info_data = db_info_recovered_data
-            print("db_change")
-        #print(self.received_db_info_data)
-        #print(self.received_tracked_data)
 
 
     def update_output_atts(self, stop_thread):
@@ -280,5 +275,4 @@ class StaticModelMaker(BN.BaseNode):
         while not(stop_thread.is_set()):
             if not(self.lock):
                 break
-            #print("hi")
         self.update_loop = False
