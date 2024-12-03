@@ -266,16 +266,19 @@ class MediapipeInputPoseOutputNode(BN.BaseNode):
         #process with mediapip
         results = self.pose.process(frame_rgb)
 
+        save_keypoints = []
         if (results.pose_landmarks):
             self.mp_drawing.draw_landmarks(frame_rgb, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
-            keypoints = [(lm.x, lm.y, lm.z) for lm in results.pose_landmarks.landmark]
-            for landmakrs in results.pose_landmarks:
-                keypoints = [(lm.x, lm.y, lm.z) for lm in landmakrs]
+            save_keypoints = [(lm.x, lm.y, lm.z) for lm in results.pose_landmarks.landmark]
+            #for landmakrs in results.pose_landmarks:
+            #    keypoints = [(lm.x, lm.y, lm.z) for lm in landmakrs]
 
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
 
-        print(keypoints)
+        #print(save_keypoints)
+        #print(len(save_keypoints))
+        self.node_output_data = [1, [save_keypoints]]
 
 
         return processed_texture_data

@@ -131,6 +131,10 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             writer = csv.writer(csvfile)
             writer.writerow([self.current_data_type])
             writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
+        if (self.current_data_type == 1):
+            writer = csv.writer(csvfile)
+            writer.writerow([self.current_data_type])
+            writer.writerow(['tag', 'keypoints_pose'])
 
     def load_data_from_db(self, show_flag_messages=True, loader_part=0, csv_name=""):
         fixed_file_name = ""
@@ -211,11 +215,19 @@ class StaticDatabaseManagerNode(BN.BaseNode):
         fixed_file_name = fixed_file_name.replace(" ", "_")
         file_to_open = Path(self.database_dir+"/"+fixed_file_name+".csv")
 
+        #if (self.current_data_type == 0):
+        csvfile = (open(file_to_open, 'a', newline=''))
+        writer = csv.writer(csvfile)
+        fixed_gesture_label = dpg.get_value(self.tag+"gesture_label_tag").replace(' ', '_')
+        #print(self.received_tracked_data)
+        track_limit = len(self.received_tracked_data)-1
+        #print(track_limit)
+
+        #writer.writerow([fixed_gesture_label, self.received_tracked_data[0], self.received_tracked_data[1]])
         if (self.current_data_type == 0):
-            csvfile = (open(file_to_open, 'a', newline=''))
-            writer = csv.writer(csvfile)
-            fixed_gesture_label = dpg.get_value(self.tag+"gesture_label_tag").replace(' ', '_')
-            writer.writerow([fixed_gesture_label, self.received_tracked_data[0], self.received_tracked_data[1]])
+            writer.writerow([fixed_gesture_label, self.received_tracked_data[0], self.received_tracked_data[track_limit]])
+        else:
+            writer.writerow([fixed_gesture_label, self.received_tracked_data[0]])
 
     def toggle_sections(self, sender, app_data):
         if app_data == "Nueva DB":
@@ -297,32 +309,33 @@ class MultiGraphCapNode(BN.BaseNode):
             self.update_plot(recovered_data[0], recovered_data[1])
 
     def update_plot(self, data_type, data):
-        if data_type == 0:
-            dpg.set_axis_limits(self.tag+"_x_axis_scatter", 1, 0)
-            dpg.set_axis_limits(self.tag+"_y_axis_scatter", -1, 0)
-            x_vals = []
-            y_vals = []
-            for group in data:  # Iterar sobre los dos grupos de puntos
-                # Filtrar los puntos válidos en el grupo
-                valid_points = [
-                    point for point in group
-                    if isinstance(point, (list, tuple)) and len(point) == 3 and
-                    not any(p is None or (isinstance(p, float) and np.isnan(p)) for p in point)
-                ]
-                
-                # Extraer valores x y y de los puntos válidos
-                x_vals.extend([point[0] for point in valid_points])
-                y_vals.extend([-point[1] for point in valid_points])
+        #print(data)
+        #if data_type == 0 or data_type == 1:
+        dpg.set_axis_limits(self.tag+"_x_axis_scatter", 1, 0)
+        dpg.set_axis_limits(self.tag+"_y_axis_scatter", -1, 0)
+        x_vals = []
+        y_vals = []
+        for group in data:  # Iterar sobre los dos grupos de puntos
+            # Filtrar los puntos válidos en el grupo
+            valid_points = [
+                point for point in group
+                if isinstance(point, (list, tuple)) and len(point) == 3 and
+                not any(p is None or (isinstance(p, float) and np.isnan(p)) for p in point)
+            ]
+            
+            # Extraer valores x y y de los puntos válidos
+            x_vals.extend([point[0] for point in valid_points])
+            y_vals.extend([-point[1] for point in valid_points])
         
-                # Agregar la serie al gráfico
-            if (len(x_vals) > 0):
-                if not (dpg.does_item_exist(self.tag+"_hands_cloud_points")):
-                    dpg.add_scatter_series(parent=self.tag+"_x_axis_scatter", x=x_vals, y=y_vals, tag=self.tag+"_hands_cloud_points")
-                else:
-                    dpg.configure_item(self.tag+"_hands_cloud_points", x=x_vals, y=y_vals)
+            # Agregar la serie al gráfico
+        if (len(x_vals) > 0):
+            if not (dpg.does_item_exist(self.tag+"_hands_cloud_points")):
+                dpg.add_scatter_series(parent=self.tag+"_x_axis_scatter", x=x_vals, y=y_vals, tag=self.tag+"_hands_cloud_points")
             else:
-                if (dpg.does_item_exist(self.tag+"_hands_cloud_points")):
-                    dpg.configure_item(self.tag+"_hands_cloud_points", x=x_vals, y=y_vals)
+                dpg.configure_item(self.tag+"_hands_cloud_points", x=x_vals, y=y_vals)
+        else:
+            if (dpg.does_item_exist(self.tag+"_hands_cloud_points")):
+                dpg.configure_item(self.tag+"_hands_cloud_points", x=x_vals, y=y_vals)
 
         time.sleep(0.005)
 

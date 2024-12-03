@@ -297,10 +297,15 @@ class StaticModelMaker(BN.BaseNode):
         if (self.loaded_model == None):
             time.sleep(0.01)
             return
-        #print(self.received_tracked_data)
-        if (len(self.received_tracked_data) <=1):
+        #print("test")
+        #print(len(self.received_tracked_data))
+        #print(self.current_features_labels)
+        #print(len(self.current_features_labels))
+        #print(self.current_features_labels)
+        if (len(self.received_tracked_data) <= 0):
             time.sleep(0.01)
             return
+        #print("test2")
         prepared_data = {}
         count_i = 0
         for f_label in self.current_features_labels:
@@ -315,6 +320,7 @@ class StaticModelMaker(BN.BaseNode):
             sum += x_val
         if (sum == 0):
             is_none = True
+            #is_none = False
             
 
         #print(x_data)
@@ -378,24 +384,24 @@ class StaticModelMaker(BN.BaseNode):
         return processed_data  # El modelo espera una entrada 2D
 
 
-    def initialize_csv(self):
-        fixed_file_name = dpg.get_value(self.tag+"db_name_file")
-        fixed_file_name = fixed_file_name.replace(" ", "_")
-        file_to_open = Path(self.models_dir+"/"+fixed_file_name+".csv")
-        if (len(fixed_file_name) < 1):
-            dpg.configure_item(self.tag+"status_node_tag", label="Nombre no valido")
-            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
-            return
-        if not (file_to_open.exists()):
-            csvfile = (open(file_to_open, 'w', newline=''))
-            dpg.configure_item(self.tag+"status_node_tag", label="Base de datos registrada")
-            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
-        else:
-            return
-        if (self.current_data_type == 0):
-            writer = csv.writer(csvfile)
-            writer.writerow([self.current_data_type])
-            writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
+    #def initialize_csv(self):
+    #    fixed_file_name = dpg.get_value(self.tag+"db_name_file")
+    #    fixed_file_name = fixed_file_name.replace(" ", "_")
+    #    file_to_open = Path(self.models_dir+"/"+fixed_file_name+".csv")
+    #    if (len(fixed_file_name) < 1):
+    #        dpg.configure_item(self.tag+"status_node_tag", label="Nombre no valido")
+    #        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
+    #        return
+    #    if not (file_to_open.exists()):
+    #        csvfile = (open(file_to_open, 'w', newline=''))
+    #        dpg.configure_item(self.tag+"status_node_tag", label="Base de datos registrada")
+    #        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
+    #    else:
+    #        return
+    #    if (self.current_data_type == 0):
+    #        writer = csv.writer(csvfile)
+    #        writer.writerow([self.current_data_type])
+    #        writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
 
     def load_existing_models(self):
         pkl_models = [file.name for file in self.formed_path_open.iterdir() if file.suffix == '.pkl']
