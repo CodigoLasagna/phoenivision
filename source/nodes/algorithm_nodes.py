@@ -7,13 +7,15 @@ import numpy as np
 import pandas as pd
 
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
+#from sklearn.metrics import accuracy_score
+#from sklearn.metrics import confusion_matrix
+#from sklearn.metrics import classification_report
 #from sklearn.metrics import roc_curve, auc
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import cross_val_score
+#from sklearn.preprocessing import StandardScaler
+#from sklearn.model_selection import cross_val_score
 
 import joblib
 from ast import literal_eval
@@ -37,9 +39,12 @@ class StaticModelMaker(BN.BaseNode):
         self.children_tags.append(self.tag+"_out_tag")
         self.models_dir = "./app_data/models/"
         self.database_dir = "./app_data/databases/"
+
+        self.formed_path = self.models_dir+"KNeighbors/"
         self.path_to_pass = ""
         self.models_open_path = Path(self.models_dir)
         self.dbs_open_path = Path(self.database_dir)
+        self.formed_path_open = Path(self.formed_path)
         self.current_data_type = 0
         self.received_tracked_data = []
         self.received_db_info_data = []
@@ -50,6 +55,7 @@ class StaticModelMaker(BN.BaseNode):
         self.x_test = None
         self.y_train = None
         self.y_test = None
+        self.model_to_train = 0
 
 
     def create_node(self):
@@ -77,6 +83,14 @@ class StaticModelMaker(BN.BaseNode):
             horizontal=True,
             callback=self.toggle_sections,
             tag=self.tag + "data_col_radio"
+        )
+        dpg.add_radio_button(
+            parent=self.tag + "extra_panel",
+            #items=["KNeighbors", "SVC", "Kmeans"],
+            items=["KNeighbors", "SVC", "DecisionTree"],
+            horizontal=True,
+            callback=lambda sender: self.load_specific_model_list(dpg.get_value(sender)),
+            tag=self.tag + "model_list_radio_selector"
         )
 
         
@@ -106,11 +120,16 @@ class StaticModelMaker(BN.BaseNode):
                 callback=lambda sender: self.load_model_list(dpg.get_value(sender)),
                 tag=self.tag+"models_list_item"
             ),
+
             dpg.add_combo(
                 default_value="Cargar DB",
                 callback=lambda sender: self.load_db_list(dpg.get_value(sender)),
                 tag=self.tag+"dbs_list_item"
             ),
+            #with dpg.menu(label="Pattern recognition"):
+            #    dpg.add_menu_item(label="Webcam hands i/o node")
+            #    with dpg.menu(label="face recognition"):
+            #        pass
 
             dpg.add_button(parent=self.tag + "extra_panel", label="status", tag=self.tag+"status_node_tag")
             dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
@@ -120,6 +139,18 @@ class StaticModelMaker(BN.BaseNode):
 
             dpg.add_button(parent=self.tag + "extra_panel", label="Entrenar Modelo", tag=self.tag+"save_db_btn", callback=self.train_model)
             dpg.bind_item_theme(self.tag+"save_db_btn", Themer.create_green_btn_theme())
+
+    def load_specific_model_list(self, sender):
+        self.formed_path = self.models_dir+sender+"/"
+        self.formed_path_open = Path(self.formed_path)
+        csv_dbs = [file.name for file in self.formed_path_open.iterdir() if file.suffix == '.pkl']
+        dpg.configure_item(self.tag+"models_list_item", items=csv_dbs)
+        if (sender == "KNeighbors"):
+            self.model_to_train = 0
+        if (sender == "SVC"):
+            self.model_to_train = 1
+        if (sender == "DecisionTree"):
+            self.model_to_train = 2
 
     def train_model(self):
         model_name_file = dpg.get_value(self.tag + "model_name_file")
@@ -135,54 +166,22 @@ class StaticModelMaker(BN.BaseNode):
             dpg.bind_item_theme(self.tag + "status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
             return
     
-        #db_csv = pd.read_csv(self.received_db_info_data, skiprows=1)
-        #target_column = "tag"
-        #feature_labels = [col for col in db_csv.columns if col != target_column]
-        #self.current_features_labels = feature_labels
-        #distinct_values = db_csv['tag'].unique()
-    
-        #for f_label in feature_labels:
-        #    db_csv[f_label] = db_csv[f_label].apply(literal_eval)
-    
-        #db_csv['features'] = db_csv.apply(
-        #    lambda row: {key.upper(): row[key] for key in feature_labels}, axis=1
-        #)
-        #db_csv['features'] = db_csv['features'].apply(self.flatten_features)
-    
-        ## Asegurar que todas las características tengan la misma longitud
-        #max_length = max(len(features) for features in db_csv['features'])
-        #db_csv['features'] = db_csv['features'].apply(
-        #    lambda features: features + [0] * (max_length - len(features))
-        #)
-    
-        #x_val = np.array(db_csv['features'].to_list())
-        #y_val = db_csv['tag'].to_list()
-    
-        #x_train, x_test, y_train, y_test = train_test_split(x_val, y_val, test_size=0.3, random_state=42)
         self.x_train, self.x_test, self.y_train, self.y_test = self.obtain_test_variables_from_db(self.received_db_info_data)
     
-        knn_model = KNeighborsClassifier(n_neighbors=13, weights='distance')
-        knn_model.fit(self.x_train, self.y_train)
-        #print(db_csv['features'])
-    
-        #y_pred = knn_model.predict(x_test)
-    
-        #accuracy = accuracy_score(y_test, y_pred)
-        #print(f'Exactitud del modelo: {accuracy}')
-    
-        #class_report = classification_report(y_test, y_pred)
-        #print('Reporte de clasificación: ')
-        #print(class_report)
-    
-        #conf_matrix = confusion_matrix(y_test, y_pred)
-        #print('Matriz de confusión:')
-        #print(conf_matrix)
+        training_model = None
+        if (self.model_to_train == 0):
+            training_model = KNeighborsClassifier(n_neighbors=13, weights='distance')
 
-        #scores = cross_val_score(knn_model, x_val, y_val, cv=5)
-        #print(f"Puntajes de validación cruzada: {scores}")
-        #print(f"Promedio: {np.mean(scores)}")
+        if (self.model_to_train == 1):
+            training_model = SVC(C=1, kernel='rbf', gamma='scale', probability=True)
+
+        if (self.model_to_train == 2):
+            #training_model = DecisionTreeClassifier(random_state=42, max_depth=5, min_samples_split=10, min_samples_leaf=10, max_features="sqrt", ccp_alpha=0.01)
+            training_model = DecisionTreeClassifier(random_state=42)
+
+        training_model.fit(self.x_train, self.y_train)
     
-        joblib.dump(knn_model, self.models_dir+model_name_file+".pkl")
+        joblib.dump(training_model, self.formed_path+model_name_file+".pkl")
         self.load_model()
 
         dpg.configure_item(self.tag+"status_node_tag", label="Modelo: ["+model_name_file+".pkl] guardado con exito.")
@@ -230,13 +229,18 @@ class StaticModelMaker(BN.BaseNode):
     def load_model(self):
         model_name_file = dpg.get_value(self.tag + "model_name_file")
         model_name_file = model_name_file.replace(' ', '_')
-        self.loaded_model = joblib.load(self.models_dir+model_name_file+".pkl")
+        self.loaded_model = joblib.load(self.formed_path+model_name_file+".pkl")
+        if hasattr(self.loaded_model, 'probability') and not self.loaded_model.probability:
+            self.loaded_model.probability = True
 
     def predict_data(self):
         if (self.loaded_model == None):
             time.sleep(0.01)
             return
         #print(self.received_tracked_data)
+        if (len(self.received_tracked_data) <=1):
+            time.sleep(0.01)
+            return
         prepared_data = {}
         count_i = 0
         for f_label in self.current_features_labels:
@@ -266,6 +270,7 @@ class StaticModelMaker(BN.BaseNode):
             #accuracy = 1 if (y_pred[0])
             #accuracy = accuracy_score(self.y_test, y_pred)
             #print()
+            time.sleep(0.005)
         else:
             dpg.configure_item(self.tag + "pred_tag", label='None')
             time.sleep(0.01)
@@ -312,10 +317,6 @@ class StaticModelMaker(BN.BaseNode):
         
         return processed_data  # El modelo espera una entrada 2D
 
-    def train_k_neighbors():
-        pass
-
-
 
     def initialize_csv(self):
         fixed_file_name = dpg.get_value(self.tag+"db_name_file")
@@ -337,50 +338,13 @@ class StaticModelMaker(BN.BaseNode):
             writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
 
     def load_existing_models(self):
-        pkl_models = [file.name for file in self.models_open_path.iterdir() if file.suffix == '.pkl']
+        pkl_models = [file.name for file in self.formed_path_open.iterdir() if file.suffix == '.pkl']
         dpg.configure_item(self.tag+"models_list_item", items=pkl_models)
+
     def load_existing_dbs(self):
         csv_dbs = [file.name for file in self.dbs_open_path.iterdir() if file.suffix == '.csv']
         dpg.configure_item(self.tag+"dbs_list_item", items=csv_dbs)
 
-    def save_timed_snapshots(self):
-        if (self.capturing):
-            return
-        self.capturing = True
-        countdown = int(dpg.get_value(self.tag+"timer_dur_tag"))
-        snapshots_n = int(dpg.get_value(self.tag+"snapshots_take_number"))
-        miliseconds = float(dpg.get_value(self.tag+"snapshots_ms_sep")) / 1000
-        dpg.configure_item(self.tag+"status_node_tag", label="tiempo antes de capturar: " + str(countdown))
-        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
-        while(countdown > 0):
-            time.sleep(1)
-            countdown -=1
-            dpg.configure_item(self.tag+"status_node_tag", label="tiempo antes de capturar: " + str(countdown))
-            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
-
-        while(snapshots_n > 0):
-            self.save_snapshot()
-            snapshots_n -= 1
-            dpg.configure_item(self.tag+"status_node_tag", label="Capturas restantes: " + str(snapshots_n))
-            dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text())
-            time.sleep(miliseconds)
-
-        dpg.configure_item(self.tag+"status_node_tag", label="Captura finalizada")
-        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
-        self.capturing = False
-        self.load_data_from_db(show_flag_messages=False)
-
-    def save_snapshot(self):
-        self.initialize_csv()
-        fixed_file_name = dpg.get_value(self.tag+"db_name_file")
-        fixed_file_name = fixed_file_name.replace(" ", "_")
-        file_to_open = Path(self.models_dir+"/"+fixed_file_name+".csv")
-
-        if (self.current_data_type == 0):
-            csvfile = (open(file_to_open, 'a', newline=''))
-            writer = csv.writer(csvfile)
-            fixed_gesture_label = dpg.get_value(self.tag+"gesture_label_tag").replace(' ', '_')
-            writer.writerow([fixed_gesture_label, self.received_tracked_data[0], self.received_tracked_data[1]])
 
     def toggle_sections(self, sender, app_data):
         if app_data == "Nuevo Modelo":
