@@ -104,7 +104,7 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
         #        keypoints_combined[hand_type] = keypoints
         #        self.mp_drawing.draw_landmarks(frame_rgb, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
         keypoints_combined = []
-        dummy_value = (float('nan'), float('nan'), float('nan'))
+        #dummy_value = (float('nan'), float('nan'), float('nan'))
         if results.multi_hand_landmarks:
             if len(results.multi_hand_landmarks) == 2:
                 # Se detectan ambas manos, agregamos los puntos de ambas
@@ -119,14 +119,17 @@ class MediapipeInputHandsOutputNode(BN.BaseNode):
                 
                 #la imagen esta volteada
                 if "Left" in results.multi_handedness[0].classification[0].label:  # Si es mano izquierda
-                    keypoints_combined.extend([[dummy_value] * 21, keypoints])  # Agregamos la mano izquierda
+                    #keypoints_combined.extend([[dummy_value] * 21, keypoints])  # Agregamos la mano izquierda
+                    keypoints_combined.extend([[] , keypoints])  # Agregamos la mano izquierda
                 else:  # Si es mano derecha
-                    keypoints_combined.extend([keypoints, [dummy_value] * 21])  # Agregamos la mano izquierda
+                    #keypoints_combined.extend([keypoints, [dummy_value] * 21])  # Agregamos la mano izquierda
+                    keypoints_combined.extend([keypoints, []])  # Agregamos la mano izquierda
 
             for landmarks in results.multi_hand_landmarks:
                 self.mp_drawing.draw_landmarks(frame_rgb, landmarks, self.mp_hands.HAND_CONNECTIONS)
         else:
-            keypoints_combined.extend([[dummy_value] * 21, [dummy_value] * 21])
+            #keypoints_combined.extend([[dummy_value] * 21, [dummy_value] * 21])
+            keypoints_combined.extend([[], []])
 
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
@@ -265,9 +268,14 @@ class MediapipeInputPoseOutputNode(BN.BaseNode):
 
         if (results.pose_landmarks):
             self.mp_drawing.draw_landmarks(frame_rgb, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
+            keypoints = [(lm.x, lm.y, lm.z) for lm in results.pose_landmarks.landmark]
+            for landmakrs in results.pose_landmarks:
+                keypoints = [(lm.x, lm.y, lm.z) for lm in landmakrs]
 
         processed_bgr_to_rgb = frame_rgb
         processed_texture_data = processed_bgr_to_rgb.astype(np.float32) / 255.0
+
+        print(keypoints)
 
 
         return processed_texture_data

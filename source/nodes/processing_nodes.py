@@ -152,6 +152,7 @@ class StaticDatabaseManagerNode(BN.BaseNode):
                 dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
             return
         self.path_to_pass = self.database_dir+"/"+fixed_file_name+".csv"
+        self.node_output_data = self.path_to_pass
         db = open(file_to_open, 'r')
         db_data_type = next(db)
         reader = csv.DictReader(db)
@@ -248,8 +249,9 @@ class StaticDatabaseManagerNode(BN.BaseNode):
             pass
             if not(self.lock):
                 break
-            #for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
-            #    node_instance.update_input_atts()
+            for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
+                #if (node_instance.alreay_running == False):
+                node_instance.update_input_atts()
             time.sleep(0.01)
         self.update_loop = False
 

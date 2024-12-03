@@ -3,6 +3,7 @@ import source.main_windows as mw_nodes
 import source.environment_front_module as efm
 import dearpygui.dearpygui as dpg
 import threading
+import pandas as pd
 
 import os
 

@@ -24,6 +24,7 @@ class BaseNode:
         self.node_type = 0
         self.children_tags = []
         self.node_unique_id = unique_id
+        self.alreay_running = False
 
     def create_node(self):
         """Método que debe ser implementado en las subclases"""
