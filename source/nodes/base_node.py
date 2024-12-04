@@ -8,6 +8,7 @@ class NodeType(Enum):
     PATTER_REC_NODE = 1
     DATA_PROC_NODE = 2
     MODEL_LAYER_NODE = 3
+    DATA_A_LAYER_NODE = 4
 
 class BaseNode:
     def __init__(self, parent, tag, unique_id):

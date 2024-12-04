@@ -76,6 +76,8 @@ class MainApp:
                 dpg.add_menu_item(label="MultiGraphCapNode", callback=lambda: self.gen_node(main_nodes.processing_nodes.MultiGraphCapNode))
             with dpg.menu(label="Modeling"):
                 dpg.add_menu_item(label="StaticModelMaker", callback=lambda: self.gen_node(main_nodes.algorithm_nodes.StaticModelMaker))
+            with dpg.menu(label="Data analysis"):
+                dpg.add_menu_item(label="ConfusionMatrixNode", callback=lambda: self.gen_node(main_nodes.data_analysis_nodes.ConfusionMatrixNode))
 
         # Crear un handler para detectar clic derecho
         with dpg.handler_registry():
@@ -169,6 +171,8 @@ class MainApp:
             (enums.DATA_PROC_NODE, enums.MODEL_LAYER_NODE),
             (enums.MODEL_LAYER_NODE, enums.DATA_PROC_NODE),
             (enums.PATTER_REC_NODE, enums.MODEL_LAYER_NODE),
+            (enums.MODEL_LAYER_NODE, enums.DATA_A_LAYER_NODE),
+            (enums.DATA_A_LAYER_NODE, enums.MODEL_LAYER_NODE),
         ]
         return  (node_a.node_type, node_b.node_type) in valid_combinations
     

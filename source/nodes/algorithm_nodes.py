@@ -24,7 +24,7 @@ from sklearn.naive_bayes import GaussianNB
 #from sklearn.linear_model import LogisticRegression
 
 #from sklearn.metrics import accuracy_score
-#from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix
 #from sklearn.metrics import classification_report
 #from sklearn.metrics import roc_curve, auc
 #from sklearn.preprocessing import StandardScaler
@@ -68,7 +68,9 @@ class StaticModelMaker(BN.BaseNode):
         self.x_test = None
         self.y_train = None
         self.y_test = None
+        self.y_pred = None
         self.model_to_train = 0
+        self.conf_matrix = None
 
 
     def create_node(self):
@@ -240,6 +242,8 @@ class StaticModelMaker(BN.BaseNode):
             training_model = GaussianNB()
 
         training_model.fit(self.x_train, self.y_train)
+        #training_model.predict(self.x_test)
+        #self.conf_matrix = confusion_matrix(self.y_test, self.y_pred)
     
         joblib.dump(training_model, self.formed_path+model_name_file+".pkl")
         self.load_model()
@@ -292,6 +296,9 @@ class StaticModelMaker(BN.BaseNode):
         self.loaded_model = joblib.load(self.formed_path+model_name_file+".pkl")
         if hasattr(self.loaded_model, 'probability') and not self.loaded_model.probability:
             self.loaded_model.probability = True
+
+        self.y_pred = self.loaded_model.predict(self.x_test)
+        self.conf_matrix = confusion_matrix(self.y_test, self.y_pred)
 
     def predict_data(self):
         if (self.loaded_model == None):
@@ -464,4 +471,6 @@ class StaticModelMaker(BN.BaseNode):
         while not(stop_thread.is_set()):
             if not(self.lock):
                 break
+            for link_tag_name, node_instance in list(self.connected_output_nodes.items()):
+                node_instance.update_input_atts()
         self.update_loop = False
