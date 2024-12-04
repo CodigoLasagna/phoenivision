@@ -31,28 +31,31 @@ class ConfusionMatrixNode(BN.BaseNode):
             with dpg.node_attribute(label="input_att", attribute_type=dpg.mvNode_Attr_Input, tag=self.tag+"_in_tag"):
                 dpg.add_text("Data input")
             with dpg.node_attribute(attribute_type=dpg.mvNode_Attr_Static):
-                with dpg.child_window(tag=self.tag+"extra_panel", width=530, height=530):
+                with dpg.child_window(tag=self.tag+"extra_panel", width=550, height=550):
                     pass
                 dpg.bind_item_theme(self.tag+"extra_panel", Themer.create_color_window_theme())
 
         #with dpg.group(parent=self.tag+"extra_panel", height=35, width=200, tag="test_group"):
-        with dpg.plot(label="Gráfico general", parent=self.tag+"extra_panel", width=500, height=500):
-            dpg.add_plot_axis(dpg.mvXAxis, label="X", tag=self.tag+"matrix_container")
+        with dpg.plot(label=" ", parent=self.tag+"extra_panel", width=500, height=500, tag=self.tag+"matrix_container_plot"):
+            dpg.add_plot_axis(dpg.mvXAxis, tag=self.tag+"matrix_container", no_label=True, no_tick_marks=True, no_tick_labels=True)
+            dpg.add_plot_axis(dpg.mvYAxis, label=" ", no_tick_marks=True, no_tick_labels=True)
+            #dpg.add_plot_axis(dpg.mvYAxis, label="Y", tag=self.tag+"y_matrix_labels")
             #dpg.add_heat_series("Confusion Matrix Heatmap", self.received_tracked_data, rows=len(self.received_tracked_data), cols=len(self.received_tracked_data))
 
     def update_input_atts(self):
         recovered_data = []
         if (len(self.connected_input_nodes.values()) > 0):
             recovered_data = list(self.connected_input_nodes.values())[0].conf_matrix
+            labels = list(self.connected_input_nodes.values())[0].unique_values
         #print(recovered_data)
         if (recovered_data is not None and len(recovered_data) >= 4):
             self.received_tracked_data = recovered_data
 
             #print(recovered_data)
             if (len(recovered_data[0]) >= 4):
-                self.update_matrix(recovered_data)
+                self.update_matrix(recovered_data, labels)
 
-    def update_matrix(self, data):
+    def update_matrix(self, data, labels):
         flat_data = [item for sublist in data for item in sublist]
         #print(data)
         normal_data = data.tolist()
@@ -71,22 +74,17 @@ class ConfusionMatrixNode(BN.BaseNode):
                     scale_min=min_val,
                     scale_max=max_val,
                     col_major=True
-                )
+                    )
+            with dpg.plot_axis(dpg.mvYAxis, label="Predicted Labels", parent=self.tag+"matrix_container_plot", no_tick_marks=True, no_tick_labels=True):
+                for i, label in enumerate(labels):
+                    dpg.add_text(label, pos=(i * 100, 0))
+            with dpg.plot_axis(dpg.mvXAxis, label="True Labels", parent=self.tag+"matrix_container_plot", no_tick_marks=True, no_tick_labels=True):
+                for i, label in enumerate(labels):
+                    dpg.add_text(label, pos=(0, i * 100))
         else:
             dpg.configure_item(self.tag+"conf_matrix_plot", x=flat_data)
 
         time.sleep(0.005)
-
-    def set_color_map(self):
-        colors = [
-            (0.0, (0.0, 0.0, 1.0)),  # Azul para valores bajos
-            (0.2, (0.0, 1.0, 1.0)),  # Cian
-            (0.4, (0.0, 1.0, 0.0)),  # Verde
-            (0.6, (1.0, 1.0, 0.0)),  # Amarillo
-            (0.8, (1.0, 0.5, 0.0)),  # Naranja
-            (1.0, (1.0, 0.0, 0.0))   # Rojo para valores altos
-        ]
-        return colors
 
     def update_output_atts(self, stop_thread):
         if (self.update_loop == True):

@@ -71,6 +71,7 @@ class StaticModelMaker(BN.BaseNode):
         self.y_pred = None
         self.model_to_train = 0
         self.conf_matrix = None
+        self.unique_values = None
 
 
     def create_node(self):
@@ -256,6 +257,8 @@ class StaticModelMaker(BN.BaseNode):
         target_column = "tag"
         feature_labels = [col for col in db_csv.columns if col != target_column]
         self.current_features_labels = feature_labels
+        self.unique_values = db_csv['tag'].unique()
+
     
         for f_label in feature_labels:
             db_csv[f_label] = db_csv[f_label].apply(literal_eval)
@@ -288,6 +291,7 @@ class StaticModelMaker(BN.BaseNode):
         self.current_features_labels = feature_labels
 
         self.x_train, self.x_test, self.y_train, self.y_test = self.obtain_test_variables_from_db(db_file_dir)
+        self.unique_values = db_csv['tag'].unique()
 
 
     def load_model(self):
@@ -389,26 +393,6 @@ class StaticModelMaker(BN.BaseNode):
             processed_data.append(data_dict)
         
         return processed_data  # El modelo espera una entrada 2D
-
-
-    #def initialize_csv(self):
-    #    fixed_file_name = dpg.get_value(self.tag+"db_name_file")
-    #    fixed_file_name = fixed_file_name.replace(" ", "_")
-    #    file_to_open = Path(self.models_dir+"/"+fixed_file_name+".csv")
-    #    if (len(fixed_file_name) < 1):
-    #        dpg.configure_item(self.tag+"status_node_tag", label="Nombre no valido")
-    #        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([240, 79, 120]))
-    #        return
-    #    if not (file_to_open.exists()):
-    #        csvfile = (open(file_to_open, 'w', newline=''))
-    #        dpg.configure_item(self.tag+"status_node_tag", label="Base de datos registrada")
-    #        dpg.bind_item_theme(self.tag+"status_node_tag", Themer.create_contour_color_text([127, 218, 37]))
-    #    else:
-    #        return
-    #    if (self.current_data_type == 0):
-    #        writer = csv.writer(csvfile)
-    #        writer.writerow([self.current_data_type])
-    #        writer.writerow(['tag', 'keypoints_left_hand', 'keypoints_right_hand'])
 
     def load_existing_models(self):
         pkl_models = [file.name for file in self.formed_path_open.iterdir() if file.suffix == '.pkl']
