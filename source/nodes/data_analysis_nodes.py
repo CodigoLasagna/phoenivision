@@ -223,21 +223,21 @@ class PrecisionGraphComparatorNode(BN.BaseNode):
                 if not(con_node.tag in (self.current_linear_series)):
                     self.add_linear_series(con_node.tag)
                     #print("created")
-                if (con_node.tag not in (self.current_tracked_y)):
-                    self.current_tracked_y[con_node.tag] = []
-                #if (con_node.tag not in self.current_tracked_names):
-                #if (con_node.current_model_name !=):
+                if (con_node.tag not in list(self.current_tracked_y.keys())):
+                    self.current_tracked_y.setdefault(con_node.tag, [])
                 self.current_tracked_names[con_node.tag] = con_node.current_model_name
-                #self.current_names[con_node.tag] = 10
-                #print(self.current_tracked_names[con_node.tag])
-                self.current_tracked_y[con_node.tag].append(con_node.current_prec_per)
-                #print(self.current_tracked_y[con_node.tag])
+
+                if (con_node.tag in list(self.current_tracked_y.keys())):
+                    self.current_tracked_y[con_node.tag].append(con_node.current_prec_per)
+                    #print(self.current_tracked_names[con_node.tag])
+                    #print(self.current_tracked_y[con_node.tag])
                 node_counter += 1
+        #print(node_counter)
 
         self.update_graph()
 
     def add_linear_series(self, tag):
-        color = [random.randint(50, 180) for _ in range(3)]
+        color = [random.randint(130, 255) for _ in range(3)] + [130]
         if tag not in self.current_tracked_y:
                 self.current_tracked_y[tag] = []
         self.current_linear_series[tag] = dpg.add_line_series(self.current_data_linear, y=self.current_pos_track, tag=self.tag+"_continuous_reg"+tag, parent=self.tag+"value_axis_line", shaded=True, label="test")
@@ -257,13 +257,14 @@ class PrecisionGraphComparatorNode(BN.BaseNode):
         for tag in list(self.current_linear_series.keys()):
             if (tag in list(self.current_tracked_y.keys()) and tag in list(self.current_tracked_names.keys())):
                 dpg.configure_item(self.current_linear_series[tag], x=self.current_pos_track, y=self.current_tracked_y[tag], label=self.current_tracked_names[tag])
-            if (len(self.current_pos_track) > self.max_data_points):
-                self.current_pos_track = []
-                self.cur_pos_graph = 0
-                self.current_tracked_y[tag] = []
 
         self.cur_pos_graph += 0.01
         self.current_pos_track.append(float(self.cur_pos_graph))
+        if (len(self.current_pos_track) > self.max_data_points):
+            self.current_pos_track = []
+            self.cur_pos_graph = 0
+            for this_key in list(self.current_tracked_y.keys()):
+                self.current_tracked_y[this_key] = []
 
         time.sleep(0.05)
 

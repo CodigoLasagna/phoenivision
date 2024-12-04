@@ -356,7 +356,6 @@ class StaticModelMaker(BN.BaseNode):
         else:
             dpg.configure_item(self.tag + "pred_tag", label='None')
             self.current_prec_per = 0
-            self.current_prec_per = max_prob
             time.sleep(0.01)
 
 
