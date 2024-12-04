@@ -64,3 +64,8 @@ class Themer():
                 dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, [50, 50, 50])  # Color al pasar el mouse
                 dpg.add_theme_color(dpg.mvThemeCol_Text, [255, 255, 255])
         return theme
+    def create_line_series_theme(color=[120, 220, 78, 255]):
+        with dpg.theme() as theme:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_color(dpg.mvPlotCol_Line, color, category=dpg.mvThemeCat_Plots)
+        return theme

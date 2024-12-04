@@ -73,6 +73,7 @@ class StaticModelMaker(BN.BaseNode):
         self.conf_matrix = None
         self.unique_values = None
         self.current_prec_per = 0
+        self.current_model_name = ""
 
 
     def create_node(self):
@@ -282,6 +283,7 @@ class StaticModelMaker(BN.BaseNode):
 
     def load_model_list(self, sender):
         dpg.set_value(self.tag + "model_name_file", sender.replace('.pkl', ''))
+        pass
         self.load_model()
 
     def load_db_list(self, sender):
@@ -297,6 +299,7 @@ class StaticModelMaker(BN.BaseNode):
 
     def load_model(self):
         model_name_file = dpg.get_value(self.tag + "model_name_file")
+        self.current_model_name = model_name_file
         model_name_file = model_name_file.replace(' ', '_')
         self.loaded_model = joblib.load(self.formed_path+model_name_file+".pkl")
         if hasattr(self.loaded_model, 'probability') and not self.loaded_model.probability:
@@ -353,6 +356,7 @@ class StaticModelMaker(BN.BaseNode):
         else:
             dpg.configure_item(self.tag + "pred_tag", label='None')
             self.current_prec_per = 0
+            self.current_prec_per = max_prob
             time.sleep(0.01)
 
 

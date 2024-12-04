@@ -78,6 +78,7 @@ class MainApp:
                 dpg.add_menu_item(label="StaticModelMaker", callback=lambda: self.gen_node(main_nodes.algorithm_nodes.StaticModelMaker))
             with dpg.menu(label="Data analysis"):
                 dpg.add_menu_item(label="ConfusionMatrixNode", callback=lambda: self.gen_node(main_nodes.data_analysis_nodes.ConfusionMatrixNode))
+                dpg.add_menu_item(label="PrecisionGraphSimpleNode", callback=lambda: self.gen_node(main_nodes.data_analysis_nodes.PrecisionGraphSimpleNode))
                 dpg.add_menu_item(label="PrecisionGraphComparatorNode", callback=lambda: self.gen_node(main_nodes.data_analysis_nodes.PrecisionGraphComparatorNode))
 
         # Crear un handler para detectar clic derecho
