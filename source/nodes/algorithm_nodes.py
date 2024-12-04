@@ -72,6 +72,7 @@ class StaticModelMaker(BN.BaseNode):
         self.model_to_train = 0
         self.conf_matrix = None
         self.unique_values = None
+        self.current_prec_per = 0
 
 
     def create_node(self):
@@ -342,6 +343,7 @@ class StaticModelMaker(BN.BaseNode):
             y_pred = self.loaded_model.predict(x_data)
             probabilities = self.loaded_model.predict_proba(x_data)
             max_prob = max(probabilities[0])
+            self.current_prec_per = max_prob
             dpg.configure_item(self.tag + "pred_tag", label=y_pred[0]+f"({max_prob * 100:.2f}%)")
             #max(probabilities[0])
             #accuracy = 1 if (y_pred[0])
@@ -350,6 +352,7 @@ class StaticModelMaker(BN.BaseNode):
             time.sleep(0.005)
         else:
             dpg.configure_item(self.tag + "pred_tag", label='None')
+            self.current_prec_per = 0
             time.sleep(0.01)
 
 
