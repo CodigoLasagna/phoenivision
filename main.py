@@ -43,8 +43,8 @@ class MainApp:
                     with dpg.group():
                         with dpg.child_window(border=False, tag="top_right_panel"):
                             pass
-                        with dpg.child_window(border=False, tag="bot_right_panel"):
-                            pass
+                        #with dpg.child_window(border=False, tag="bot_right_panel"):
+                        #    pass
         dpg.set_primary_window("main_window", True)
         dpg.set_viewport_resize_callback(self.resize_callback)
 
@@ -56,8 +56,8 @@ class MainApp:
         with dpg.child_window(parent="top_right_panel", tag="nodes_item_panel"):
             dpg.add_text("Panel de nodos")
             dpg.add_separator()
-        with dpg.child_window(parent="bot_right_panel"):
-            dpg.add_text("test")
+        #with dpg.child_window(parent="bot_right_panel"):
+        #    dpg.add_text("test")
 
         self.env_settings_modal = efm.ModalWindow(label="Configuración del entorno", fields=[""], buttons=[""], width=600, height=400)
 
@@ -104,10 +104,10 @@ class MainApp:
     def resize_callback(self):
         viewport_width = dpg.get_viewport_width()
         viewport_height = dpg.get_viewport_height()
-        dpg.set_item_width("main_window_left_panel", int(viewport_width * 0.7))
-        dpg.set_item_width("main_window_right_panel", int(viewport_width * 0.3) - 20)
-        dpg.set_item_height("top_right_panel", int(viewport_height * 0.3))
-        dpg.set_item_height("bot_right_panel", int(viewport_height * 0.7) - 50)
+        dpg.set_item_width("main_window_left_panel", int(viewport_width * 0.75))
+        dpg.set_item_width("main_window_right_panel", int(viewport_width * 0.25) - 20)
+        #dpg.set_item_height("top_right_panel", int(viewport_height * 0.3))
+        #dpg.set_item_height("bot_right_panel", int(viewport_height * 0.7) - 50)
 
         for name, node in self.nodes_list_menu_items.items():
             dpg.set_item_width(node[0], int(dpg.get_item_rect_size("top_right_panel")[0] - 16))
